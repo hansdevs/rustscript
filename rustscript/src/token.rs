@@ -62,6 +62,7 @@ pub enum Token {
 
 impl Token {
     /// Returns true if this token is a known HTML tag identifier.
+    #[allow(dead_code)]
     pub fn is_html_tag(&self) -> bool {
         match self {
             Token::Ident(name) => is_html_tag(name),
@@ -82,6 +83,7 @@ pub fn is_html_tag(name: &str) -> bool {
             | "table" | "tr" | "td" | "th"
             | "header" | "footer" | "nav" | "section" | "main" | "article" | "aside"
             | "video" | "audio" | "canvas"
+            | "pre" | "code"
             | "text"
     )
 }

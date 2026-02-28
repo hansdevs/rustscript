@@ -1,6 +1,6 @@
 #!/bin/sh
 # RustScript installer — no Rust toolchain required.
-# Usage:  curl -fsSL https://raw.githubusercontent.com/user/rustscript/main/install.sh | sh
+# Usage:  curl -fsSL https://raw.githubusercontent.com/hansdevs/rustscript/main/install.sh | sh
 #
 # Override variables:
 #   RUSTSCRIPT_VERSION  — tag to install (default: latest)
@@ -8,7 +8,7 @@
 
 set -e
 
-REPO="user/rustscript"   # ← Update this to the real GitHub org/repo
+REPO="hansdevs/rustscript"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 
 # ── Detect OS & Architecture ──────────────────────────────────────────────────

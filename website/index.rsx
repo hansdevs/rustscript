@@ -25,6 +25,54 @@ page {
     }
 
     # ════════════════════════════════════════════════════════
+    #  NAV BAR
+    # ════════════════════════════════════════════════════════
+    div {
+        style {
+            display: "flex"
+            justify-content: "space-between"
+            align-items: "center"
+            pad: "16px 40px"
+            border-bottom: "1px solid #1f2937"
+            bg: "rgba(10, 14, 23, 0.95)"
+            position: "sticky"
+            top: "0"
+            z-index: "100"
+            backdrop-filter: "blur(12px)"
+        }
+
+        div {
+            style { display: "flex" align-items: "center" gap: "12px" }
+
+            img {
+                src: "{logo}"
+                alt: "RustScript"
+                style { h: "32px" w: "auto" }
+            }
+            span "RustScript" {
+                style {
+                    fg: "#f97316"
+                    size: "1.1rem"
+                    weight: "700"
+                }
+            }
+        }
+
+        div {
+            style { display: "flex" gap: "24px" align-items: "center" }
+
+            a "Home" {
+                href: "index.html"
+                style { fg: "#f97316" text-decoration: "none" size: "0.9rem" weight: "600" }
+            }
+            a "Compiler" {
+                href: "compiler.html"
+                style { fg: "#9ca3af" text-decoration: "none" size: "0.9rem" }
+            }
+        }
+    }
+
+    # ════════════════════════════════════════════════════════
     #  HERO
     # ════════════════════════════════════════════════════════
     div {
@@ -129,7 +177,7 @@ page {
                         pointer
                         transition: "border-color 0.15s"
                     }
-                    href: "https://github.com/user/rustscript"
+                    href: "https://github.com/hansdevs/rustscript"
                 }
             }
 
@@ -824,7 +872,7 @@ page {
                     align: "left"
                 }
 
-                p "git clone https://github.com/user/rustscript\ncd rustscript && make install" {
+                p "git clone https://github.com/hansdevs/rustscript\ncd rustscript && make install" {
                     style {
                         font-family: "'JetBrains Mono', monospace"
                         size: "0.82rem"

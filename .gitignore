@@ -6,5 +6,7 @@ rustscript/target/
 *.swp
 *.swo
 
-# Generated HTML output
+# Generated HTML output (except Pages root)
 *.html
+!index.html
+!compiler.html

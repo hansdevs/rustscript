@@ -761,6 +761,7 @@ fn escape_js_string(s: &str) -> String {
         .replace('\n', "\\n")
         .replace('\r', "\\r")
         .replace('\t', "\\t")
+        .replace("</", "<\\/")  // prevent </script> from closing the tag
 }
 
 fn indent(s: &str, prefix: &str) -> String {
