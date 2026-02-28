@@ -84,7 +84,7 @@
       "patterns": [
         {
           "name": "keyword.declaration.rustscript",
-          "match": "\\b(let|fn)\\b"
+          "match": "\\b(let|fn|import)\\b"
         },
         {
           "name": "keyword.control.rustscript",

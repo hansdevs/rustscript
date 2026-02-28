@@ -88,6 +88,7 @@ impl Parser {
 
     fn parse_stmt(&mut self) -> Result<Stmt, String> {
         match self.peek().clone() {
+            Token::Import => self.parse_import(),
             Token::Let => self.parse_let(),
             Token::Fn => self.parse_fn_decl(),
             Token::Return => self.parse_return(),
@@ -96,6 +97,21 @@ impl Parser {
             Token::For => self.parse_for(),
             Token::Page => self.parse_page(),
             _ => self.parse_assign_or_expr(),
+        }
+    }
+
+    fn parse_import(&mut self) -> Result<Stmt, String> {
+        self.advance(); // consume 'import'
+        let (line, col) = self.loc();
+        match self.peek().clone() {
+            Token::Str(path) => {
+                self.advance();
+                Ok(Stmt::Import { path })
+            }
+            other => Err(format!(
+                "[{}:{}] Expected string path after 'import', got {:?}",
+                line, col, other
+            )),
         }
     }
 

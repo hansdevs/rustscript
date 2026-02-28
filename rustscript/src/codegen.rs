@@ -288,6 +288,10 @@ impl Codegen {
                     String::new()
                 }
             }
+            Stmt::Import { .. } => {
+                // Imports are resolved before codegen; should not reach here.
+                String::new()
+            }
         }
     }
 

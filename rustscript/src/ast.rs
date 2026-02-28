@@ -11,6 +11,10 @@ pub struct Program {
 
 #[derive(Debug, Clone)]
 pub enum Stmt {
+    /// `import "path/to/file.rsx"`
+    Import {
+        path: String,
+    },
     /// `let name = expr`
     Let {
         name: String,

@@ -13,9 +13,10 @@ mod parser;
 mod codegen;
 mod interpreter;
 
+use std::collections::HashSet;
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 
 fn main() {
@@ -68,8 +69,8 @@ fn cmd_preview(args: &[String]) {
 
     match fs::write(&out_path, &html) {
         Ok(_) => {
-            println!("✓ Built {} ({} bytes)", input, html.len());
-            println!("  Opening in browser...");
+            println!("Built {} ({} bytes)", input, html.len());
+            println!("Opening in browser...");
             open_in_browser(&out_path);
         }
         Err(e) => {
@@ -95,34 +96,17 @@ fn open_in_browser(path: &str) {
 }
 
 fn compile_to_html(input: &str) -> String {
-    let source = match fs::read_to_string(input) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Error reading '{}': {}", input, e);
-            process::exit(1);
-        }
-    };
-
-    let mut lexer = lexer::Lexer::new(&source);
-    let tokens = match lexer.tokenize() {
-        Ok(t) => t,
-        Err(e) => {
-            eprintln!("Lexer error: {}", e);
-            process::exit(1);
-        }
-    };
-
-    let mut parser = parser::Parser::new(tokens);
-    let program = match parser.parse_program() {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("Parse error: {}", e);
-            process::exit(1);
-        }
-    };
+    let program = parse_file(input);
+    let base_dir = Path::new(input)
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
+    let canonical = fs::canonicalize(input).unwrap_or_else(|_| PathBuf::from(input));
+    let mut seen = HashSet::new();
+    seen.insert(canonical);
+    let resolved = resolve_imports(program, base_dir, &mut seen);
 
     let mut cgen = codegen::Codegen::new();
-    cgen.generate(&program)
+    cgen.generate(&resolved)
 }
 
 fn cmd_build(args: &[String]) {
@@ -143,7 +127,7 @@ fn cmd_build(args: &[String]) {
 
     match fs::write(&output, &html) {
         Ok(_) => {
-            println!("✓ Built {} → {} ({} bytes)", input, output, html.len());
+            println!("Built {} -> {} ({} bytes)", input, output, html.len());
         }
         Err(e) => {
             eprintln!("Error writing '{}': {}", output, e);
@@ -160,34 +144,17 @@ fn cmd_run(args: &[String]) {
     }
 
     let input = &args[0];
-    let source = match fs::read_to_string(input) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Error reading '{}': {}", input, e);
-            process::exit(1);
-        }
-    };
-
-    let mut lexer = lexer::Lexer::new(&source);
-    let tokens = match lexer.tokenize() {
-        Ok(t) => t,
-        Err(e) => {
-            eprintln!("Lexer error: {}", e);
-            process::exit(1);
-        }
-    };
-
-    let mut parser = parser::Parser::new(tokens);
-    let program = match parser.parse_program() {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("Parse error: {}", e);
-            process::exit(1);
-        }
-    };
+    let program = parse_file(input);
+    let base_dir = Path::new(input.as_str())
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
+    let canonical = fs::canonicalize(input).unwrap_or_else(|_| PathBuf::from(input.as_str()));
+    let mut seen = HashSet::new();
+    seen.insert(canonical);
+    let resolved = resolve_imports(program, base_dir, &mut seen);
 
     let mut interp = interpreter::Interpreter::new();
-    match interp.run(&program) {
+    match interp.run(&resolved) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("Runtime error: {}", e);
@@ -196,13 +163,84 @@ fn cmd_run(args: &[String]) {
     }
 }
 
+/// Lex and parse a single .rsx file into a Program AST.
+fn parse_file(path: &str) -> ast::Program {
+    let source = match fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("Error reading '{}': {}", path, e);
+            process::exit(1);
+        }
+    };
+
+    let mut lex = lexer::Lexer::new(&source);
+    let tokens = match lex.tokenize() {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("Lexer error in '{}': {}", path, e);
+            process::exit(1);
+        }
+    };
+
+    let mut p = parser::Parser::new(tokens);
+    match p.parse_program() {
+        Ok(prog) => prog,
+        Err(e) => {
+            eprintln!("Parse error in '{}': {}", path, e);
+            process::exit(1);
+        }
+    }
+}
+
+/// Recursively resolve all `import "..."` statements by inlining the imported
+/// file's AST in place. Tracks already-seen files to prevent circular imports.
+fn resolve_imports(
+    program: ast::Program,
+    base_dir: &Path,
+    seen: &mut HashSet<PathBuf>,
+) -> ast::Program {
+    let mut resolved_stmts = Vec::new();
+
+    for stmt in program.stmts {
+        match stmt {
+            ast::Stmt::Import { path } => {
+                let import_path = base_dir.join(&path);
+                let canonical = match fs::canonicalize(&import_path) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        eprintln!("Error resolving import '{}': {}", path, e);
+                        process::exit(1);
+                    }
+                };
+
+                if !seen.insert(canonical.clone()) {
+                    // Already imported this file, skip to avoid circular imports.
+                    continue;
+                }
+
+                let import_str = import_path.to_string_lossy().to_string();
+                let imported = parse_file(&import_str);
+
+                let child_dir = canonical
+                    .parent()
+                    .unwrap_or_else(|| Path::new("."));
+                let child_resolved = resolve_imports(imported, child_dir, seen);
+
+                resolved_stmts.extend(child_resolved.stmts);
+            }
+            other => {
+                resolved_stmts.push(other);
+            }
+        }
+    }
+
+    ast::Program { stmts: resolved_stmts }
+}
+
 fn print_usage() {
     println!(
         r#"
-╔═══════════════════════════════════════════════════════════╗
-║               🦀  RustScript Compiler  🦀                ║
-║       Where HTML, CSS & Python had a child               ║
-╚═══════════════════════════════════════════════════════════╝
+RustScript Compiler
 
 USAGE:
   rustscript preview <file.rsx>

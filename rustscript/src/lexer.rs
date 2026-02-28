@@ -269,6 +269,7 @@ impl Lexer {
             "while" => Token::While,
             "for" => Token::For,
             "in" => Token::In,
+            "import" => Token::Import,
             "page" => Token::Page,
             "style" => Token::Style,
             "on" => Token::On,

@@ -33,7 +33,7 @@ page {
             align: "center"
         }
 
-        h1 "🦀 RustScript" {
+        h1 "RustScript" {
             style {
                 size: "3rem"
                 mb: "8px"
@@ -141,7 +141,7 @@ page {
                 align: "left"
             }
 
-            h2 "📝 Todo List" {
+            h2 "Todo List" {
                 style {
                     mb: "16px"
                     size: "1.5rem"
@@ -159,7 +159,7 @@ page {
             }
 
             if count > 10 {
-                p "🎉 You clicked more than 10 times! Achievement unlocked!" {
+                p "You clicked more than 10 times! Achievement unlocked!" {
                     style {
                         mt: "16px"
                         pad: "12px"

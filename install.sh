@@ -98,14 +98,14 @@ install() {
     fi
 
     echo ""
-    echo "✓ rustscript installed to ${INSTALL_DIR}/rustscript"
+    echo "rustscript installed to ${INSTALL_DIR}/rustscript"
     echo ""
     echo "  Try it:  rustscript preview app.rsx"
     echo ""
 
     # Verify it's on PATH
     if ! command -v rustscript >/dev/null 2>&1; then
-        echo "⚠  ${INSTALL_DIR} is not in your PATH."
+        echo "Warning: ${INSTALL_DIR} is not in your PATH."
         echo "   Add it:  export PATH=\"${INSTALL_DIR}:\$PATH\""
         echo ""
     fi

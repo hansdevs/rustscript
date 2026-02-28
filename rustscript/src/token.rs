@@ -19,6 +19,7 @@ pub enum Token {
     While,
     For,
     In,
+    Import,
     Page,
     Style,
     On,

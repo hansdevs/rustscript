@@ -9,7 +9,7 @@ INSTALL_DIR ?= $(HOME)/.cargo/bin
 install: build
 	@mkdir -p $(INSTALL_DIR)
 	cp rustscript/target/release/rustscript $(INSTALL_DIR)/rustscript
-	@echo "✓ Installed to $(INSTALL_DIR)/rustscript"
+	@echo "Installed to $(INSTALL_DIR)/rustscript"
 
 # Build for all release platforms (requires cross-compilation targets installed)
 TARGETS = x86_64-apple-darwin aarch64-apple-darwin x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-msvc
@@ -25,7 +25,7 @@ release:
 			*linux*)   cp rustscript/target/$$target/release/rustscript dist/rustscript-linux-$$(echo $$target | cut -d- -f1) ;; \
 		esac; \
 	done
-	@echo "✓ Binaries in dist/"
+	@echo "Binaries in dist/"
 
 clean:
 	cd rustscript && cargo clean

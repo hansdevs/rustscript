@@ -242,6 +242,10 @@ impl Interpreter {
                 println!("[info] Page block skipped in --run mode. Use build mode to generate HTML.");
                 Ok(Signal::None)
             }
+            Stmt::Import { .. } => {
+                // Imports are resolved before interpretation; should not reach here.
+                Ok(Signal::None)
+            }
             Stmt::Expr(expr) => {
                 self.eval_expr(expr, local)?;
                 Ok(Signal::None)

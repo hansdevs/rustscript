@@ -2,723 +2,1085 @@
 
 **Where HTML, CSS & Python had a child.**
 
-RustScript is a Turing-complete programming language. Write a single `.rsx` file with Python-like logic, HTML-like structure, and CSS-like styling — then preview it instantly in your browser.
+RustScript is a Turing-complete programming language that compiles to self-contained HTML. Write a single `.rsx` file with Python-like logic, HTML-like structure, and CSS-like styling — then preview it instantly in your browser.
 
 **No Rust toolchain required.** Download a single binary and go.
 
----
-
-## Install
-
-### One-liner (macOS / Linux)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/user/rustscript/main/install.sh | sh
 ```
-
-This auto-detects your OS and architecture, downloads the correct binary, and puts it in `/usr/local/bin`.
-
-### Manual download
-
-Grab the binary for your platform from [Releases](https://github.com/user/rustscript/releases):
-
-| Platform | Binary |
-|----------|--------|
-| macOS Apple Silicon | `rustscript-darwin-aarch64` |
-| macOS Intel | `rustscript-darwin-x86_64` |
-| Linux x86_64 | `rustscript-linux-x86_64` |
-| Linux ARM64 | `rustscript-linux-aarch64` |
-| Windows x86_64 | `rustscript-windows-x86_64.exe` |
-
-Then make it executable and move it onto your PATH:
-
-```bash
-chmod +x rustscript-darwin-aarch64
-sudo mv rustscript-darwin-aarch64 /usr/local/bin/rustscript
-```
-
-### Verify
-
-```bash
-rustscript --version
+.rsx source → Lexer → Tokens → Parser → AST ─→ Codegen → HTML/CSS/JS
+                                                 ↓
+                                           Interpreter (run mode)
 ```
 
 ---
 
-## Quick Start
-
-```bash
-# Preview any .rsx file instantly in your browser
-rustscript preview myapp.rsx
-
-# Or build to a specific HTML file
-rustscript build myapp.rsx -o myapp.html
-
-# Run logic-only in the terminal
-rustscript run myapp.rsx
-```
-
----
-
-## Commands
-
-| Command | What it does |
-|---------|--------------|
-| `rustscript preview <file.rsx>` | Build + open in browser automatically |
-| `rustscript build <file.rsx>` | Compile to `.html` (same name by default) |
-| `rustscript build <file.rsx> -o out.html` | Compile to a specific output path |
-| `rustscript run <file.rsx>` | Interpret logic in the terminal |
-| `rustscript help` | Show help message |
-
----
-
-## Language Reference
-
-### Comments
-
-```python
-# This is a comment
-# Comments start with # and go to end of line
-```
-
-### Variables
-
-Declare with `let`. No type annotations needed — types are inferred.
-
-```python
-let name = "RustScript"      # string
-let age = 25                  # integer
-let pi = 3.14                 # float
-let active = true             # boolean
-let items = [1, 2, 3]         # list
-```
-
-Reassign without `let`:
-
-```python
-let x = 10
-x = 20
-x += 5       # compound assignment (also -=)
-```
-
-### Types
-
-| Type | Example | Description |
-|------|---------|-------------|
-| `int` | `42`, `-7`, `0` | 64-bit integer |
-| `float` | `3.14`, `0.5` | 64-bit float |
-| `str` | `"hello"` | UTF-8 string |
-| `bool` | `true`, `false` | Boolean |
-| `list` | `[1, 2, 3]` | Dynamic array |
-| `null` | *(no literal)* | Absence of value |
-
-### Strings & Interpolation
-
-Strings use double quotes. Use `{expression}` inside strings to embed values:
-
-```python
-let name = "world"
-let greeting = "Hello, {name}!"           # → "Hello, world!"
-let math = "2 + 2 = {2 + 2}"              # → "2 + 2 = 4"
-let info = "{name} has {len(name)} chars"  # → "world has 5 chars"
-```
-
-Escape sequences:
-
-| Escape | Character |
-|--------|-----------|
-| `\"` | Double quote |
-| `\\` | Backslash |
-| `\n` | Newline |
-| `\t` | Tab |
-| `\{` | Literal `{` (no interpolation) |
-| `\}` | Literal `}` |
-
-### Operators
-
-**Arithmetic:**
-
-| Operator | Meaning | Example |
-|----------|---------|---------|
-| `+` | Add / concat | `3 + 4` → `7`, `"a" + "b"` → `"ab"` |
-| `-` | Subtract | `10 - 3` → `7` |
-| `*` | Multiply | `4 * 5` → `20`, `"ha" * 3` → `"hahaha"` |
-| `/` | Divide | `10 / 3` → `3` |
-| `%` | Modulo | `10 % 3` → `1` |
-
-**Comparison:**
-
-| Operator | Meaning |
-|----------|---------|
-| `==` | Equal |
-| `!=` | Not equal |
-| `<` | Less than |
-| `>` | Greater than |
-| `<=` | Less or equal |
-| `>=` | Greater or equal |
-
-**Logical:**
-
-| Operator | Meaning |
-|----------|---------|
-| `and` | Logical AND |
-| `or` | Logical OR |
-| `not` | Logical NOT |
-
-**Assignment:**
-
-| Operator | Meaning |
-|----------|---------|
-| `=` | Assign |
-| `+=` | Add and assign |
-| `-=` | Subtract and assign |
-
-### Conditionals
-
-```python
-if x > 10 {
-    print("big")
-} else if x > 0 {
-    print("small")
-} else {
-    print("zero or negative")
-}
-```
-
-### While Loop
-
-```python
-let i = 0
-while i < 10 {
-    print(i)
-    i += 1
-}
-```
-
-### For Loop
-
-```python
-let fruits = ["apple", "banana", "cherry"]
-for fruit in fruits {
-    print(fruit)
-}
-
-for i in range(5) {
-    print(i)    # 0, 1, 2, 3, 4
-}
-```
-
-### Functions
-
-```python
-fn greet(name) {
-    return "Hello, {name}!"
-}
-
-print(greet("world"))
-```
-
-Functions support recursion:
-
-```python
-fn factorial(n) {
-    if n <= 1 {
-        return 1
-    }
-    return n * factorial(n - 1)
-}
-
-print(factorial(5))   # 120
-```
-
-### Lists
-
-```python
-let nums = [1, 2, 3, 4, 5]
-
-# Access by index (0-based)
-print(nums[0])        # 1
-nums[2] = 99          # assign to index
-
-# Built-in list functions
-print(len(nums))      # 5
-push(nums, 6)         # add to end
-pop(nums)             # remove last
-
-# Iterate
-for n in nums {
-    print(n)
-}
-```
-
-### Built-in Functions
-
-| Function | Description | Example |
-|----------|-------------|---------|
-| `print(args...)` | Print values to console | `print("hi", x)` |
-| `len(x)` | Length of list or string | `len([1,2,3])` → `3` |
-| `str(x)` | Convert to string | `str(42)` → `"42"` |
-| `int(x)` | Convert to integer | `int("42")` → `42` |
-| `float(x)` | Convert to float | `float("3.14")` → `3.14` |
-| `type(x)` | Get type name as string | `type(42)` → `"int"` |
-| `range(n)` | List `[0, 1, ..., n-1]` | `range(3)` → `[0, 1, 2]` |
-| `range(a, b)` | List `[a, a+1, ..., b-1]` | `range(2, 5)` → `[2, 3, 4]` |
-| `push(list, val)` | Append value to list | `push(items, "new")` |
-| `pop(list)` | Remove & return last item | `pop(items)` |
-| `abs(n)` | Absolute value | `abs(-5)` → `5` |
-| `min(a, b)` | Minimum of two values | `min(3, 7)` → `3` |
-| `max(a, b)` | Maximum of two values | `max(3, 7)` → `7` |
-
-### String Methods
-
-```python
-"hello".upper()          # "HELLO"
-"HELLO".lower()          # "hello"
-"  hi  ".trim()          # "hi"
-"hello".contains("ell")  # true
-"a,b,c".split(",")       # ["a", "b", "c"]
-["a", "b"].join("-")     # "a-b"
-"hello".length           # 5
-```
-
-### Member Access & Indexing
-
-```python
-let items = [10, 20, 30]
-items[0]                 # 10
-items.length             # 3
-
-let name = "hello"
-name[0]                  # "h"
-name.length              # 5
-```
-
----
-
-## Page — Building UI
-
-The `page { }` block defines a reactive web interface. When you `preview` or `build` a file containing a page block, it compiles to a self-contained HTML file.
-
-### Basic Structure
-
-```python
-page {
-    h1 "Hello World"
-}
-```
-
-This generates a complete HTML page with a `<h1>` tag.
-
-### Available HTML Tags
-
-| Category | Tags |
-|----------|------|
-| **Layout** | `div`, `span`, `header`, `footer`, `nav`, `section`, `main`, `article`, `aside` |
-| **Text** | `h1`, `h2`, `h3`, `h4`, `h5`, `h6`, `p`, `a`, `text` |
-| **Form** | `button`, `input`, `textarea`, `select`, `option`, `label`, `form` |
-| **List** | `ul`, `ol`, `li` |
-| **Table** | `table`, `tr`, `td`, `th` |
-| **Media** | `img`, `video`, `audio`, `canvas` |
-| **Other** | `br`, `hr` |
-
-### Text Content
-
-Put a string after the tag name:
-
-```python
-page {
-    h1 "Welcome"
-    p "This is a paragraph."
-    p "Count is: {count}"       # interpolation works here too
-}
-```
-
-### Inline Styles
-
-Use `style { }` inside any element:
-
-```python
-page {
-    h1 "Styled Heading" {
-        style {
-            fg: "#58a6ff"
-            size: "2rem"
-            mb: "16px"
-        }
-    }
-}
-```
-
-RustScript has its own shorthand styling system. You can use the shorthands **or** standard CSS property names — both work. Values are quoted strings. Flag properties (like `bold`, `pointer`, `center`) need no value.
-
-### Style Shorthand Reference
-
-#### Typography
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `size` | `font-size` | `size: "1.5rem"` |
-| `font` | `font-family` | `font: "'Inter', sans-serif"` |
-| `weight` | `font-weight` | `weight: "600"` |
-| `bold` | `font-weight: bold` | `bold` *(flag)* |
-| `italic` | `font-style: italic` | `italic` *(flag)* |
-| `underline` | `text-decoration: underline` | `underline` *(flag)* |
-| `strike` | `text-decoration: line-through` | `strike` *(flag)* |
-| `uppercase` | `text-transform: uppercase` | `uppercase` *(flag)* |
-| `lowercase` | `text-transform: lowercase` | `lowercase` *(flag)* |
-| `capitalize` | `text-transform: capitalize` | `capitalize` *(flag)* |
-| `spacing` | `letter-spacing` | `spacing: "2px"` |
-| `lh` | `line-height` | `lh: "1.6"` |
-| `align` | `text-align` | `align: "center"` |
-| `indent` | `text-indent` | `indent: "2em"` |
-
-#### Colors & Background
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `bg` | `background` | `bg: "#0d1117"` |
-| `fg` | `color` | `fg: "#e6edf3"` |
-
-#### Spacing
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `pad` | `padding` | `pad: "16px"` |
-| `pt` | `padding-top` | `pt: "8px"` |
-| `pb` | `padding-bottom` | `pb: "8px"` |
-| `pl` | `padding-left` | `pl: "8px"` |
-| `pr` | `padding-right` | `pr: "8px"` |
-| `px` | `padding-left` + `padding-right` | `px: "16px"` |
-| `py` | `padding-top` + `padding-bottom` | `py: "8px"` |
-| `m` | `margin` | `m: "0 auto"` |
-| `mt` | `margin-top` | `mt: "16px"` |
-| `mb` | `margin-bottom` | `mb: "8px"` |
-| `ml` | `margin-left` | `ml: "8px"` |
-| `mr` | `margin-right` | `mr: "8px"` |
-| `mx` | `margin-left` + `margin-right` | `mx: "auto"` |
-| `my` | `margin-top` + `margin-bottom` | `my: "16px"` |
-
-#### Sizing
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `w` | `width` | `w: "100%"` |
-| `h` | `height` | `h: "200px"` |
-| `minw` | `min-width` | `minw: "300px"` |
-| `maxw` | `max-width` | `maxw: "600px"` |
-| `minh` | `min-height` | `minh: "100vh"` |
-| `maxh` | `max-height` | `maxh: "500px"` |
-
-#### Border & Shape
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `radius` | `border-radius` | `radius: "8px"` |
-| `shadow` | `box-shadow` | `shadow: "0 4px 12px rgba(0,0,0,0.3)"` |
-| `outline` | `outline` | `outline: "2px solid blue"` |
-
-#### Layout (Flag Properties)
-
-These expand to one or more CSS rules with no value needed:
-
-| Flag | CSS Output |
-|------|-----------|
-| `row` | `display: flex; flex-direction: row` |
-| `col` | `display: flex; flex-direction: column` |
-| `center` | `display: flex; justify-content: center; align-items: center` |
-| `hidden` | `display: none` |
-| `inline` | `display: inline` |
-| `block` | `display: block` |
-| `grid` | `display: grid` |
-| `pointer` | `cursor: pointer` |
-| `nowrap` | `white-space: nowrap` |
-| `clip` | `overflow: hidden` |
-| `scroll` | `overflow: auto` |
-| `fixed` | `position: fixed` |
-| `absolute` | `position: absolute` |
-| `relative` | `position: relative` |
-| `sticky` | `position: sticky` |
-
-#### Flex & Grid
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `items` | `align-items` | `items: "center"` |
-| `justify` | `justify-content` | `justify: "space-between"` |
-| `self-align` | `align-self` | `self-align: "flex-end"` |
-| `grow` | `flex-grow` | `grow: "1"` |
-| `shrink` | `flex-shrink` | `shrink: "0"` |
-| `basis` | `flex-basis` | `basis: "200px"` |
-| `wrap` | `flex-wrap` | `wrap: "wrap"` |
-| `gap` | `gap` | `gap: "16px"` |
-| `cols` | `grid-template-columns` | `cols: "1fr 1fr 1fr"` |
-
-#### Position & Layers
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `pos` | `position` | `pos: "relative"` |
-| `z` | `z-index` | `z: "10"` |
-
-#### Effects
-
-| Shorthand | CSS Property | Example |
-|-----------|-------------|---------|
-| `opacity` | `opacity` | `opacity: "0.5"` |
-| `transition` | `transition` | `transition: "all 0.2s"` |
-| `transform` | `transform` | `transform: "scale(1.1)"` |
-| `filter` | `filter` | `filter: "blur(4px)"` |
-| `backdrop` | `backdrop-filter` | `backdrop: "blur(10px)"` |
-
-> **Standard CSS passthrough:** Any property name not listed above is passed through as-is. So `border: "1px solid red"`, `font-family: "monospace"`, `background-clip: "text"` etc. all work.
-
-### Page-Level Styles
-
-Put `style { }` directly inside `page { }` to style the body:
-
-```python
-page {
-    style {
-        bg: "#0d1117"
-        fg: "#e6edf3"
-        font: "'Inter', sans-serif"
-        pad: "40px"
-    }
-
-    h1 "Hello"
-}
-```
-
-### Attributes
-
-Set HTML attributes with `name: value` inside the element body:
-
-```python
-page {
-    a "Visit Google" {
-        href: "https://google.com"
-        style {
-            color: "#58a6ff"
-        }
-    }
-
-    input {
-        type: "text"
-        placeholder: "Enter your name"
-    }
-}
-```
-
-### Nesting Elements
-
-Put child elements inside the parent's `{ }`:
-
-```python
-page {
-    div {
-        style { pad: "20px" }
-        h1 "Title"
-        p "Paragraph inside the div"
-        div {
-            p "Nested deeper"
-        }
-    }
-}
-```
-
-### Event Handlers
-
-Use `on <event> { }` to handle DOM events. The page re-renders automatically after each event.
-
-```python
-let count = 0
-
-page {
-    p "Count: {count}"
-    button "Click me" {
-        on click {
-            count = count + 1
-        }
-    }
-}
-```
-
-Supported events: `click`, `input`, `change`, `submit`, `keydown`, `keyup`.
-
-Inside an event handler, `event.value` gives the current value of the element (useful for inputs):
-
-```python
-let name = ""
-
-page {
-    input {
-        type: "text"
-        placeholder: "Your name"
-        on input {
-            name = event.value
-        }
-    }
-    p "Hello, {name}!"
-}
-```
-
-### Conditional Rendering
-
-Use `if` / `else` inside a page to show/hide elements:
-
-```python
-let logged_in = true
-
-page {
-    if logged_in {
-        p "Welcome back!"
-    } else {
-        p "Please log in."
-    }
-}
-```
-
-### List Rendering
-
-Use `for` inside a page to render lists:
-
-```python
-let items = ["Apples", "Bananas", "Cherries"]
-
-page {
-    ul {
-        for item in items {
-            li "{item}"
-        }
-    }
-}
-```
-
----
-
-## Full App Example
-
-Here's a complete interactive app in one `.rsx` file:
-
-```python
-# app.rsx — A complete RustScript app
-
-let count = 0
-let todos = ["Learn RustScript", "Build something", "Ship it"]
-
-fn label(n) {
-    if n == 1 {
-        return "time"
-    }
-    return "times"
-}
-
-page {
-    style {
-        bg: "#0d1117"
-        fg: "#e6edf3"
-        font: "'Inter', sans-serif"
-        pad: "40px"
-    }
-
-    div {
-        style { maxw: "600px"  m: "0 auto" }
-
-        h1 "My App" {
-            style { fg: "#58a6ff"  size: "2.5rem" }
-        }
-
-        p "Clicked {count} {label(count)}"
-
-        button "+ Add" {
-            style {
-                bg: "#238636"
-                fg: "white"
-                border: "none"
-                pad: "10px 20px"
-                radius: "8px"
-                pointer
-            }
-            on click {
-                count = count + 1
-            }
-        }
-
-        for todo in todos {
-            p "• {todo}" {
-                style { py: "8px" }
-            }
-        }
-
-        if count > 5 {
-            p "🎉 Nice clicking!" {
-                style { fg: "#3fb950" }
-            }
-        }
-    }
-}
-```
-
-Preview it: `rustscript preview app.rsx`
-
----
-
-## How It Works
+## Table of Contents
+
+- [Install](#install)
+- [Quick Start](#quick-start)
+- [CLI Commands](#cli-commands)
+- [Language Reference](#language-reference)
+  - [Comments](#comments)
+  - [Variables](#variables)
+  - [Types](#types)
+  - [Strings & Interpolation](#strings--interpolation)
+  - [Operators](#operators)
+  - [Conditionals](#conditionals)
+  - [While Loop](#wh# RustScript
+
+**Where HTML, CSS & Python had a child.**
+
+RustScript is a Turing-complete pui
+**Where HTion
+RustScript is a Turing-complete programods
+**No Rust toolchain required.** Download a single binary and go.
 
 ```
 .rsx source → Lexer → Tokens → Parser → AST ─→ Codegen → HTML/CSS/JS
-                                                ↓
-                                          Interpreter (run mode)
+                                                 ↓
+                      nt)
 ```
-
-| Component | File | What it does |
-|-----------|------|-------------|
-| Tokens | `src/token.rs` | Token types, keyword list, HTML tag registry |
-| Lexer | `src/lexer.rs` | Converts source text to token stream |
-| AST | `src/ast.rs` | Abstract syntax tree node types |
-| Parser | `src/parser.rs` | Recursive descent parser |
-| Codegen | `src/codegen.rs` | Compiles AST to self-contained HTML + JS + CSS |
-| Interpreter | `src/interpreter.rs` | Tree-walking interpreter for terminal mode |
-| CLI | `src/main.rs` | Command-line interface |
-
-## Turing Completeness
-
-RustScript is Turing complete. It supports:
-- Arbitrary integers and dynamic lists (unbounded storage)
-- Conditional branching (`if` / `else if` / `else`)
-- Iteration (`while`, `for`)
-- Recursion (functions calling themselves)
-
-This is sufficient to simulate any Turing machine.
-
-## File Extension
-
-RustScript files use the `.rsx` extension. A VS Code extension is included in `rustscript-vscode/` for syntax highlighting.
+.rsx source → Lexer → Tokens → Parser → AST ─→ence](#                                                 ↓
+                            bu                                           Interprele```
 
 ---
 
-## Build from Source (contributors only)
+## Table of Contents
 
-Most users should use the [install script](#install) above. If you want to build from source:
+- [Install](#install)
+- [Quick Snd
+-ing](#co
+- [Install](#insta)
+ - [Quick Start](#qui#l- [CLI Commands](#cli-commanxa- [Lan#full-app-example)
+- [VS C  - [Comments](#comments)
+  - [Variables](it  - [Variables](#variabl [  - [Types](#typess](#turing  - [Streness)
+- [Bu  - [Operators](#operators)
+  - [Conditionals](#condi
 
-**Prerequisites:** Rust ≥ 1.85 (`edition = "2024"`)
+  - [Conditionals](#conditle  - [While Loop](#wh# RustScript**
+**Where HTML, CSS & Python had?? 
+RustScript is a Turing-complete pui
+**WacO**Where HTion
+RustScript is a TuripsRustScript ibu**No Rust toolchain required.** Download ll
+```
+.rsx source → Lexer → Tokens → Parser → AST ─→oad.rth                                                 ↓
+                      nt)
+``ta                      na specific version
+RUSTSCRIPT_```
+.rsx source → LexeL .r./                            bu                                           Interprele```
 
-```bash
-cd rustscript
-cargo build --release
-./target/release/rustscript --version
+---
 
-# Install to ~/.cargo/bin
-make install
+## Table sh
 ```
 
-### Cutting a Release
+### Manu
+---
 
-Tag a version and push — GitHub Actions will build binaries for all platforms:
+## Table of Contents
 
-```bash
-git tag v0.1.0
-git push origin v0.1.0
+- [Install](#install)
+- [Quick Snd
+-ing](#co
+- [Install](/us
+#/ru
+- [Install](#instapag- [Quick Snd
+-ing](nar-ing](#co
+---- [Insta-- - [Quick Start](#il- [VS C  - [Comments](#comments)
+  - [Variables](it  - [Variables](#variabl pt  - [Variables](it  - [Variable4 - [Bu  - [Operators](#operators)
+  - [Conditionals](#condi
+
+  - [Conditionals](#condix8  - [Conditionals](#condi
+
+  - 64
+  - [Conditionals](#conecu**Where HTML, CSS & Python had?? 
+RustScript is a Turing-compt-RustScript is a Turing-complete t-**WacO**Where HTion
+RustScript is scRustScript is a Tufy```
+.rsx source → Lexer → Tokens → Parser → AST ─→oad.rth         ea.r a                      nt)
+``ta                      na specific version
+RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta                      RUSTSCRIPT_```
+.rsx source → LexeL .r./   ew.rsx source ?o
+---
+
+## Table sh
 ```
 
-Binaries appear on the [Releases](https://github.com/user/rustscript/releases) page automatically.
+### Manu
+---
+
+## Table of Contents
+
+- [Install](#install)
+- [Quick Snd
+-ing](#co
+- [Inst Co
+#and```
+
+### Mnd
+# De---
+
+##on
+#
+|-
+- [Install](#insta---- [Quick Snd
+-ing](#ie-ing](#co
+->`- [Instale#/ru
+- [Instalro- [r -ing](nar-ing](#co
+---- [Insta--il---- [Insta-- - [om  - [Variables](it  - [Variables](#variabl pt  - [Variables](it e.  - [Conditionals](#condi
+
+  - [Conditionals](#condix8  - [Conditionals](#condi
+
+  - 64
+  - [Conditionals](#cin
+  - [Conditionals](#conpt 
+  - 64
+  - [Conditionals](#conecu**Where  help` | Show help RustScript is a Turing-compt-RustScript is a Turing-compley RustScript is scRustScript is a Tufy```
+.rsx source → Lexer → Tokens → Pars**.rsx source → Lexer → Tokens → Po ``ta                      na specific version
+RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta        uxRUSTSCRIP style {
+            fg: "#58a6ff"
+e             fg:  w  ``ta                  ut.rsx source → LexeL .r./   ew.rsx sourc `---
+
+## Table sh
+```
+
+### Manu
+---
+
+## Table od
+#dir```
+
+### Mhe
+#erm---
+
+##ag
+#blo
+- [Install](#instaefu- [Quick Snd
+-ing](# a-ing](#co
+ an- [Inst ()#and```
+
+
+
+
+### M# L# De--e 
+##on
+nce#
+|## Comm-ing](#ie-ing](#co
+->`- [Instaleen->`- [Instale#/rut - [Instalro- [r  e---- [Insta--il---- [Insta-- - [ocl
+  - [Conditionals](#condix8  - [Conditionals](#condi
+
+  - 64
+  - [Conditionals](#cin
+  - [Conditionals](#conpt 
+  - 64
+  -  ag
+  - 64
+  - [Conditionals](#cin
+  - [Conditionals](     - [    - [Conditionals](#co=   - 64
+  - [Conditionals]n
+  - [te.rsx source → Lexer → Tokens → Pars**.rsx source → Lexer → Tokens → Po ``ta                      na specific version
+RUSTSCRIP style {
+    d
+RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta        uxRUSTSCRIP style {
+            fg: "#58a6ff"
+e             fg:  w  `|             fg: ,   ``t | 64-bit float |
+| `            fg: "#58a6ff"
+e     |
+e             fg:  w  ``e`
+## Table sh
+```
+
+### Manu
+---
+
+## Table od
+#dir```
+
+### Mhe
+#erm---
+
+##ag
+#blo
+- [Install]val```
+
+### Mut
+#nes---
+
+##:*
+#
+| #dir```
+
+#th
+### Mlsy#erm----
+##ag
+---#bl--- [---ing](# a-ing](#co
+ an- [Inst ()|  an- [Inst ()#and| 
+
+
+
+### M# L# De--eon-zer##on
+nce#
+|## Cstnce| |##-e->`- [Instaleen->`- [Instno  - [Conditionals](#condix8  - [Conditionals](#condi
+
+  - 64
+  - [Conditionals](#cin
+  u
+  - 64
+  - [Conditionals](#cin
+  - [Conditionals](ssi  - [
+
+  - [Conditionals](#cowo  - 64
+  -reeting = "Hello,  -  e}  - 64    - [#   - [Conditionals](   t   - [Conditionals]n
+  - [te.rsx source → Lexer → Tokent   - [te.rsx source {RUSTSCRIP style {
+    d
+RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta        uxRUSTSCRIP style {
+            fg: "#58a6ff"
+e     te    d
+RUSTSCRIP slRUST|
+            fg:  |  ``ta        uxRUSTSCRI L            fg: "#58a6ff"
+e     | e             fg:  w  `|# | `            fg: "#58a6ff"
+e     |
+e             fg:  w  ``e`
+--e     |
+e             fg:  
+|e    | A## Table sh
+```
+
+### Manu ````
+
+### M "
+#` ?--
+
+##"`
+#
+| #dir```
+
+#ra
+### `10 #erm--??
+##ag
+
+| `*` | Mult
+### Mut
+#nes---`4 #nes--??
+##:*
+ `"#
+| * 3
+#th
+###hah##a"##ag
+---#bl--- id--- ` an- [Inst ()|  an- [%` | Modulo
+
+
+### M# L# De--eon-zer##on
+nce#t/flonce#
+|## Cstnce| |##-e-> f|##t.
+  - 64
+  - [Conditionals](#cin
+  u
+  - 64
+  - [Conditionals](#cin
+  - [Conditionals](ssi  - [
+g a  - [ i  u
+  - 64
+  - [Condit
+-  dd  - [wo  - [Conditionals](ssiem
+  - [Conditionals](#coperato  -reeting = "Hello,  -  e}  --  - [te.rsx source → Lexer → Tokent   - [te.rsx source {RU|
+| `<` | Less than |
+|     d
+RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta        uxRUSTSCRIP *LRUSTal            fg: |   ``ta        uxRUSTSCRI--            fg: "#58a6ff"
+e      `e     te    d
+RUSTSCRIP t`RUSTSCRIP slOT            fg: sie     | e             fg:  w  `|# | `            fg: "#58a6ff"
+e    ige     |
+e             fg:  w  ``e`
+--e     |
+e             fg
+#e     di--e     |
+e             f 1e       pr|e    | A## Table if```
+
+### Manu ````
+"s
+#ll"
+### M "
+#`    #` ?-"z
+##"`
+ ne#
+|ive"
+#ra
+###
+####Wh##ag
+
+| `*` | Mth
+| let### Mut
+#nee #nes-- {##:*
+ `"#
+(i)
+    i `" 1| *``#th
+####or---#bl--- id-e 
+
+### M# L# De--eon-zer##on
+nce#t/flonce#
+|## Cs"appnce#t/flonce#
+|## Cstnce
+f|## Cstnce| fr  - 64
+  - [Conditionals]
+
+  - [ i  u
+  - 64
+  - [Condit(i      - [ 1  - [Conditionals](ssi og a  - [ i  u
+  - 64
+  - [
+f  - 64
+  - [ll  - [  -  dd  - [)   - [Conditionals](#coperato  -reeton| `<` | Less than |
+|     d
+RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta        uxRUSTSCRIP *LRUSTal            fg:
+
+|     d
+RUSTSCRIP riRUSTS {
+    if n <= 1 {
+    ``ta        uxRUSTSCRI re      `e     te    d
+RUSTSCRIP t`RUSTSCRIP slOT            fg: sie     | e             fg:  w  `|# | naRUSTSCRIP t+ fibonaccie    ige     |
+e             fg:  w  ``e`
+--e     |
+e             fg
+#e     di--e     ```python
+let nums = e            5]--e     |
+e             fsee       (n#e     di--e   # e             f 1  
+### Manu ````
+"s
+#ll"
+### M "
+#`    #` ?-"z
+##"
+pr"s
+#ll"
+### ))   #### #`    (n##"`
+ ne#
+|iv   nead|ivo #ra
+po##nu##) 
+| `*` |    | let### M r#nee #nes--
+# `"#
+(i)
+    i ` c(i)in   =####or---#bl--- i  
+### M# L# De--eon-zerance#t/flonce#
+|## Cs"appri|## Cs"appnc
+#|## Cstnce
+f|## Cstnce
+|f|## Cstn | Description | Example
+  - [ i  u
+  - 6---  - 64
+  --  - [--  - 64
+  - [
+f  - 64
+  - [ll  - [  -  dd  - [)   - [Conditiote  - [`pf  -("  - [l)`|     d
+RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta        uxRUSTSCRIP *LRCoRUSTSCto            fg: 2)  ``ta        uxRUSTSCRI` 
+|     d
+RUSTSCRIP riRUSTS {
+    if n <= 1 {
+   `flRUSTSC`     if n <= 1 {
+   |    ``ta      )`RUSTSCRIP t`RUSTSCRIP slOT            fg: sie   ine             fg:  w  ``e`
+--e     |
+e             fg
+#e     di--e     ```python
+let nums = e            5]--e     |
+Li--e     |
+e, ..., b-1]` | `e        5#e     di--e   4]let nums = e            5 Ae             fsee       (n#e      "### Manu ````
+"s
+#ll"
+### M "
+e & return last item | `pop(items)"s
+#ll"
+### )`#| ###ol#`    lu##"
+pr"s
+#ll" ?r `#ll|
+###mi ne#
+|iv   nead|ivo #ra
+p v|ivespo##nu##) 
+| `*` ? | `*` |  ma# `"#
+(i)
+    i ` c(i)in   =####o| (i)
+(3  7)### M# L# De--eon-zerance#t/flonce#
+py|## Cs"appri|## Cs"appnc
+#|## CstnEL#|## Cstnce
+f|## Cstnce  f|## Cstnllo|f|## Cstn.t  - [ i  u
+  - 6---  - 64
+  --  -ta  - 6--- )   --  - [--  c"  - [
+f  - 64
+    f  -a"  - [l "RUSTSCRIP style {
+            fg: "#58a6ff"
+  ``ta        uxRUSTSCRI`
+            fg: s   ``ta        uxRUSTSCRI--|     d
+RUSTSCRIP riRUSTS {
+    if n <= 1 {
+   `flRUSTSC`     if n <= 1 {
+   |    weRUSTSC s    if n <= 1 {
+   l   `flRUSTSC` .t   |    ``ta      )`RUSTSCRIin--e     |
+e             fg
+#e     di--e     ```python
+let nums = e            5]--e     |
+Li--e`.e       li#e     di--e   Splet nums = e            5r Li--e     |
+e, ..., b-1]` | `e    ise, ..., b- w"s
+#ll"
+### M "
+e & return last item | `pop(items)"s
+#ll"
+### )`#| ###ol#`    lu##"
+pr"s
+#ll" ?r `#ll|
+###mi ne#
+|iv  `p#th###lee & res #ll"
+### )`#| ###ol#`    lu##"
+pr"s  #### pr"s
+#ll" ?r `#ll|
+###m  #ll 3###mi ne#
+|iv"h|iv   nemep v|ivespo##nu##)  | `*` ? | `*` |  th(i)
+    i ` c(i)in   =#--  
+#(3  7)### M# L# De--eon-zer `py|## Cs"appri|## Cs"appnc
+#|## CstnEL#|nt#|## CstnEL#|## Cstnce
+f|` f|## Cstnce  f|## Cstes  - 6---  - 64
+  --  -tML file with embedded CSS  --  -ta  - ptf  - 64
+    f  -a"  - [l "RUSTSCRIP sty{
+    f  "            fg: "#58a6ff"
+  ``ta   a  ``ta        uxRUSTSCRI a            fg: s   ``taisRUSTSCRIP riRUSTS {
+    if n <= 1 {
+   `flRUSTSC` er    if n <= 1 {
+  
+
+   `flRUSTSC` HT   |    weRUSTSC s    if n <
+|   l   `flRUSTSC` .t   |    ``ta| e             fg
+#e     di--e     ```python
+let nums = e  `,#e     di--e   idlet nums = e            5h2Li--e`.e       li#e     di--e   Sp`,e, ..., b-1]` | `e    ise, ..., b- w"s
+#ll"
+### M "
+e & return last ite`,#ll"
+### M "
+e & return last item | ` `###, e & re
+|#ll"
+### )`#| ###ol#`    lu##"
+pr"sth###
+|pr"s
+#ll"  | `img`, `video#ll`a###mi ne#
+|ivs`|iv  `p#th### )`#| ###ol#`    lu##"
+xtpr"s  #### pr"s
+#ll" ?rem#ll" ?r `#ll|de###m  #ll 3##t |iv"h|iv   nemep v|ra    i ` c(i)in   =#--  
+#(3  7)### M# L# De--eon-zer `pel#(3  7)### M# L# De--eon#|## CstnEL#|nt#|## CstnEL#|## Cstnce
+f|` f|## Cstnce  {
+f|` f|## Cstnce  f|## Cstes  - 6--- ra  --  -tML file with embedded CSS  --  -#     f  -a"  - [l "RUSTSCRIP sty{
+    f  "            f
+U    f  "            fg: "#58a6fnt  ``ta   a  ``ta        uxRUSTSCed    if n <= 1 {
+   `flRUSTSC` er    if n <= 1 {
+  
+
+   `flRUSTSC` HT   |    weRU     `flRUSTSC` 16  
+
+   `flRUSTSC` HT   |    wetScrip|   l   `flRUSTSC` .t   |    ``ta| e       ed#e     di--e     ```python
+let nums = e  `,#e     telet nums = e  `,#e     di
+##ll"
+### M "
+e & return last ite`,#ll"
+### M "
+e & return last item | ` `###, e & re
+|#ll"
+### )`#| ###ol#`    lu##"
+pr"sth###
+|pr"s
+| ###nte & re |### M "
+e & return last one &  `fo|#ll"
+### )`#| ###ol#`    lu##"
+pr"ser###  |pr"sth###
+|pr"s
+#ll"  | ht|pr"s
+#lgh#ll"60|ivs`|iv  `p#th### )`#| ###ol#`   d`xtpr"s  #### pr"s
+#ll" ?rem#ll" ?r `#-s#ll" ?rem#ll" ?i#(3  7)### M# L# De--eon-zer `pel#(3  7)### M# L# De--eon#|## CstnEL#|nt#|## CstnEL#* f|` f|## Cstnce  {
+f|` f|## Cstnce  f|## Cstes  - 6--- ra  --  -tML file with embedded CSS  -anf|` f|## Cstnce   |    f  "            f
+U    f  "            fg: "#58a6fnt  ``ta   a  ``ta        uxRUSTSCed    if n <= 1 {
+   `fteU    f  "           li   `flRUSTSC` er    if n <= 1 {
+  
+
+   `flRUSTSC` HT   |    weRU     `flRUSTSC` 16|   
+
+   `flRUSTSC` HT   |    we.6
+` |
+   `flRUSTSC` HT   |    wetScrip|   l   `flRUS
+| let nums = e  `,#e     telet nums = e  `,#e     di
+##ll"
+### M "
+e & return last ite`,#ll"
+### M "
+e &xample |
+|-----------|-------------|---------|
+| `bg`### bae & rend### M "
+e & return last `fe & reco|#ll"
+### )`#| ###ol#`    lu##"
+pr"sng### Shpr"sth###
+|pr"s
+| ###nte E|pr"s
+| 
+|| ##--e & return last one &--### )`#| ###ol#`    lu##"
+pr"s`ppr"ser###  |pr"sth###
+|ppa|pr"s
+#ll"  | ht|pr"px#ll"
+|#lgh#ll"60|ivsng#ll" ?rem#ll" ?r `#-s#ll" ?rem#ll" ?i#(3  7)### M# L# De-- |f|` f|## Cstnce  f|## Cstes  - 6--- ra  --  -tML file with embedded CSS  -anf|` f|## Cstnce   |    f  "            f
+U    f  "            fg: "# `U    f  "            fg: "#58a6fnt  ``ta   a  ``ta        uxRUSTSCed    if n <= 1 {
+   `fteU    f  "           li `ml   `fteU    f  "           li   `flRUSTSC` er    if n <= 1 {
+  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT   |    weRU     `flRUSTSC` 16|   
+
+   p`
++ `bottom` | `my: "16px"` |
+
+#### Sizing
+
+| Shorthand |` |
+   `flRUSTSC` HT   |   --  --| let nums = e  `,#e     telet nums = e  `,#e` ##ll"
+### M "
+e & return last ite`,#ll"
+### M "
+e & `### ` e & re-w### M "
+e &xample |
+|---|
+e &xamw`|---------dt| `bg`### bae & rend### M "
+e & retuine & return last `fe & reco |### )`#| ###ol#`    lu##"
+pr"sxhpr"sng### Shpr"sth###
+|pr |pr"s
+| ###nte E|pr" || ## P| 
+|| ##--e & pl| |pr"s`ppr"ser###  |pr"sth###
+|ppa|pr"s
+#ll"  | ht|pr"pxor|ppa|pr"s
+#ll"  | ht|pr"pxx"#ll"  | ha|#lgh#ll"60|ivsng#l |U    f  "            fg: "# `U    f  "            fg: "#58a6fnt  ``ta   a  ``ta        uxRUSTSCed    if n <= 1 {
+   `fteU    f  "           li `ml   `fteU    f  "           li   `flRUSTSC` er    i--   `fteU    f  "           li `ml   `fteU    f  "           li   `flRUSTSC` er    if n <= 1 {
+  
+
+   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT   |    weRU     `flRUSTSC` 16|   
+
+   p`
++ `bottay
+ no
+   `flRUSTSC` HT   dis
+   p`
++ `bottom` | `my: "16px"` |
+
+#### Sizing
+
+`gr+ `b| 
+#### Sizing
+
+| Shorthand er`
+| Shortha: p   `flRUSTSC` Hwr### M "
+e & return last ite`,#ll"
+### M "
+e & `### ` e & re-w
+| `scroll` | `overfle & reto### M "
+e & `### ` e & rn:e & `#` e &xample |
+|---|
+e &xamwn:|---|
+e &x |e &xree & retuine & return last `fe & reco |### )`#|`ppr"sxhpr"sng### Shpr"sth###
+|pr |pr"s
+| ###nte E|pr" || ## P| ty|pr |pr"s
+| ###nte E|pr" |--| ###nte--|| ##--e & pl| |pr"s`pp| |ppa|pr"s
+#ll"  | ht|pr"pxor|ppa|pr"s
+#ll"ti#ll"  | us#ll"  | ht|pr"pxxjustify: "s   `fteU    f  "           li `ml   `fteU    f  "           li   `flRUSTSC` er    i--   `fteU    f  "           li `ml   `fteU    f  "           li   `flRUSTSC`|   
+
+   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT   |    weRU     `flRUSTSC` 16|   
+
+   p`
++ `bottay
+ no
+   `flRUSTSC` HT   dis
+   p`
++ `bottom` | `my: "16px"` |
+
+#` 
+
+| 
+   `flRUSTSC` Htem
+   `flRUSTSC` HT   : "
+   p`
++ `bottay
+ no
+   `flRUSTSC` HT   dis
+   p` | + `bPr no
+   ` E  mp   p`
++ `bottom` | `m--+ `b--
+#### Sizing
+
+`gr+ `b| 
+##osi
+`gr+ `b| os:#### Sizve
+| Shortha | | Shortha: p  : e & r |
+
+#### Effects
+
+| Shorthand | ### M "
+e & `### ` e & r
+|e & `#--| `scroll` | `over--e & `### ` e & rn:e & `#` e &xampl `|---|
+e &xamwn:|---|
+e &x |e &xree &tre &xtie &x |e &xreeti|pr |pr"s
+| ###nte E|pr" || ## P| ty|pr |pr"s
+| ###nte E|pr" |--| ###nte--|| ##--e & p || ###nte` | ###nte E|pr" |--| ###nte--|| ##-ro#ll"  | ht|pr"pxor|ppa|pr"s
+#ll"ti#ll"  | us#ll"  | ht|pr"pxxpa#ll"ti#ll"  | us#ll"  | htna
+   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT   |    weRU     `flRUSTSC` 16|   
+
+   p`
++ `bottay
+ no
+   `flRUSTSC` HT   dis
+   p`
++ `bottom` | `my: "16px"` |
+
+#` 
+
+| 
+   `flRUSTSC` Htem
+   `flRnsi
+   `flRUSTSC` H se
+   `flRUSTSC` HT   ``p
+   p`
++ `bottay
+ no
+   `flRUSTSC` HT   dis
+   p`   + `bg: no
+   `3"       p`
++ `bottom` | `msa+ `ber
+#` 
+       pad: "40px"
+    }
+|    h1   `flRUSTSC` HT ef   p`
++ `bottay
+ no
+ al+ `b a no
+   `da   b   p` | + `bPr no
+   ,    ` E  mp   p`
+, + `bottom` | `ac#### Sizing
+
+`gr+ `b| yl
+`gr+ `b| e t##osi
+`g# `gr+ib| Shortha | | Shorthaut
+#### Effects
+
+| Shorthand | ### Mthe
+| Shorthandy:e & `### ` e & r
+|e   |e & `#-- Google"e &xamwn:|---|
+e &x |e &xree &tre &xtie &x |e &xreeti|pr |pr"s
+| ###n
+ e &x |e &xreeut| ###nte E|pr" || ## P| ty|pr |pr"s
+| ###nte EEn| ###nte E|pr" |--| ###nte--|| ##-  #ll"ti#ll"  | us#ll"  | ht|pr"pxxpa#ll"ti#ll"  | us#ll"  | htna
+   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUt'   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT   |x"
+   `flRUSTSC` Hitl
+   `flRUSTSC` HT   aph
+   p`
++ `bottay
+ no
+   `flRUSTSC` HT   dis
+   p`ted+ `bpe no
+   `    
+    p`
++ `bottom` | `m H+ `ber
+#` 
+
+| 
+   `flRUSTSC` Hte ha
+|le  OM   `flRnsi
+   `fl *   `flRUSrs   `flRUSTSC` HT af   p`
++ `bottay
+ no
+  m+ `bl  no
+   `na  me   p`   + `bg: no
+   
+l   `3"       p`
+ge+ `bottom` | `t:#` 
+       pad: "40px"Cl  k     }
+|    h1   `cl|   {
++ `bottay
+ no
+ al+ `b a no
+      no
+ al+   a}
+   `da   Supp   ,    ` E  mp   p`
+, + ` T, + `bottom` | `ac#--
+`gr+ `b| yl
+`gr+ `b| e t##o` |`gr+ `b| es `g# `gr+ib| Shorut#### Effects
+
+| Shorthand | ### n 
+| Shorthanrok| Shorthandy:e & `###ut|e   |e & `#-- Google"e &xar /e &x |e &xree &tre &xtie &x |e &xreit| ###n
+ e &x |e &xreeut| ###nte E|pr" || ## P|ey e &x K| ###nte EEn| ###nte E|pr" |--| ###nte--|| ##-  #lva   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUt'   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT  
+   `flRUSTSC` Ht"
+
+   `flRUt'   `flRUS "Y
+   `flRUSTSC` HT  `  
+
+   {
+
+   `flRUSTSC` HT   ven   `flRUSTSC` Hitl
+   }   `flRUSTSC` HT am   p`
++ `bottay
+ no
+ ti+ `b R no
+   `
+
+  e    p`ted+ `bpe no
+   a    `    
+    p`
+e     p`
+s:+ `bopy#` 
+
+| 
+   `flRUSTSC` ru
+|
+pa e |le  OM   `flRnsi
+ {
+   `fl *   `flRUme+ `bottay
+ no
+  m+ `bl  no
+   `na  me   p` i no
+  m+}
+  ``   `na  me  R   
+l   `3"       p`
+ge+ ` al agge+ `bottom` | ts       pad: "40px"Clms|    h1   `cl|   {
++ `bottayer+ `bottay
+ no
+ al   no
+ al+   a f      no
+ ait al+        `da   l, + ` T, + `bottom` | `ac#--
+`gr
+
+`gr+ `b| yl
+`gr+ `b| e t##o c`gr+ `b| ete
+| Shorthand | ### n 
+| Shorthanrok| Shorthandy:e & `###ut|unt| Shorthanrok| Shorle e &x |e &xreeut| ###nte E|pr" || ## P|ey e &x K| ###nte EEn| ###nte E|pr" |--| ###nte--|| ##-  #lva   `flRU  
+   `flRUSTSC` HT  `  
+
+   `flRUt'   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT  
+   `flRUSTSC` Ht"
+
+   fo
+   `flRUt'   `flRUSeri
+   `flRUSTSC` HT 0px"
+    }
+
+   `flRUSTSC` HT  
+tyl   `flRUSTSC` Ht"  
+   `flRUt'   `f      `flRUSTSC` HT  `    
+   {
+
+   `flRUSTSC`#58
+  f"    }   `flRUSTSC` HT am   p`
++ `bottay
+"C+ `bottay
+ no
+ ti+ `b R no
+)} no
+ ti+   tiv   `
+
+  e    
+  tyl   a    `    
+    p`      p`
+e    
+
+e      s:+ `bott
+| 
+   `flRase  {|
+pa e |le  OM   st {
+   `fl *   `flRUme      no
+  m+ `bl  no
+   `na  m    rd   `na  me     m+}
+  ``   `na  mad  ``0pl   `3"       p`
+gepxge+ ` al agge+   + `bottayer+ `bottay
+ no
+ al   no
+ al+   a f      no
+ ait al+      co no
+ al   no
+ al+     a } al+      ait al+        `  `gr
+
+`gr+ `b| yl
+`gr+ `b| e t##o c`gr+ `b| ete
+| S  
+`   `gr+ `b| e30| Shorthand | ### n 
+| Short"1| Shorthanrok| Shor     `flRUSTSC` HT  `  
+
+   `flRUt'   `flRUSTSC``c  
+
+   `flRUSTSC` HT  `  
+
+   `flRUSTSC` HT  
+   `flRUSTSC` Ht"
+
+   fo
+   `flRUt'   `flRUSeri
+   `flRUSTSC` HT 0px"
+    }
+  
+   `flRUt'   `flRUSeas
+   `flRUS           style {
+
+   `flRUSTSC` HT  
+bg:   `flRUSTSC` Ht"wh
+   fo
+   `flRUtone   `     `flRUS       pad: "1    }
+
+   `flRUSTSC`8p
+   poityl   `flRUSTSC`      `flRUt'   `f      n    {
+
+   `flRUSTSC`#58
+  f"    }   `flRUt 
+  
+    f"    }   `fl
+ + `bottay
+"C+ `bottay
+ no
+ ti+ `fo"C+ `botn  no
+ ti+ `   t  )} no
+ ti+ {t ti+" 
+  e    
+  ty     tyl e     p`      p`
+e   e    
+
+e       
+e  
+  | 
+   `flRase  >  0 pa e |le  OM  p   `fl *   `flRUme u  m+ `bl  no
+   `na  m        `na  m  :   ``   `na  mad  ``0pl   `3"      gepxge+ ` al agge+   + `bottayer+ `bt: no
+ al   no
+ al+   a f      no
+ ait al+
+
+ a-
+ al+   Co ait al+      co ta al   no
+ al+      ` al+   il
+` is included in the `rustscript-vscode/` di`gr+ `b| e**| S  
+`   `gr+ `b| e30| Shorx `   li| Short"1| Shorthanrok| Shor     `f s
+   `flRUt'   `flRUSTSC``c  
+
+   `flRUSTSC` HT  ` int
+   `flRUSTSC` HT  `  
+
+  ato
+   `flRUSTSC` HT  
+ack   `flRUSTSC` Ht"ut
+   fo
+   `flRUt `[   ``(   `flRUSTSC` HT 0px"in    }
+  
+   `flRUt' `#  
+ ne co   `flRUS           sin
+   `flRUSTSC` HT  
+bg:   ashbg:   `flRUSTSC` e    fo
+   `flRUtone   cp   `ru
+   `flRUSTSC`8p
+   poityl   `flRUSTSC`      pt
+   poityrt VS Co
+   `flRUSTSC`#58
+  f"    }   `flRUt 
+  
+    f"    sts  f"    }   `flx   
+    f"    }   `ge co + `bottay
+"C+ `en"C+  rustsc no
+ ti+ `.v tx
+ ti+ `   t  )} no
+ tct ti+ {t ti+" 
+  ur  e    
+  ty ? ty  ene   e    
+
+e       
+e  
+  | Co
+e      ? He  
+  |/J            `na  m        `na  m  :   ``   `na  mad  ``0pl   `3"      ge   al   no
+ al+   a f      no
+ ait al+
+
+ a-
+ al+   Co ait al+      co ta al   no
+ al+      ` al+   il
+`-- al+   To ait al+
+
+ a-
+ al.r
+ a-
+ aken ayp al+      ` al+   il
+` is included  |` is included in ther`   `gr+ `b| e30| Shorx `   li| Short"1| Shorthanrok| Shor  co   `flRUt'   `flRUSTSC``c  
+
+   `flRUSTSC` HT  ` int
+   `flRUSTSC`ty
+   `flRUSTSC` HT  ` int
+ sio   `flRUSTSC` HT  `  
+|
+
+  ato
+   `flRUSTSC`er.   `| ack   `flRUSTSC`  p   fo
+   ` operator pre   `nc  
+   `flRUt' `#  
+ ne co   `flRUS           ST to ne co   `flRUne   `flRUSTSC` HT  
+bg:   ashS bg:   ashbg:   `f|    `flRUtone   cp   `ru
+   `flRUs`   `flRUSTSC`8p
+   poire   poityl   `fcr   poityrt VS Co
+   `flRUSTSCCL   `flRUSTSC`#5s`  f"    }   `fl i  
+    f"    sts   p in    f"    }   `ge co + `bottay
+nd"C+ `en"C+  rustsc no
+ ti+ `. i ti+ `.v tx
+ ti+ `  hi ti+ `   t`s tct ti+ {t ti+"ac  ur  e    
+  tyen  ty ? typr
+e       
+e  
+  | Co
+e Ale  
+p-lev   ve    le  |/J       aS al+   a f      no
+ ait al+
+
+ a-
+ al+   Co ait al+      co ta al   no
+ al+      ` al+ le ait al+
+
+ a-
+ al)`
+ a-
+ aon  aat al+      ` al+   il
+`-- al+   To atc`-- al+   To ait als 
+ a-
+ al.r
+ a-
+ akeeve a d a-
+at an ` is included  |` is include.
+
+   `flRUSTSC` HT  ` int
+   `flRUSTSC`ty
+   `flRUSTSC` HT  ` int
+ sio   `flRUSTSC` HT  `  
+|
+
+  ato
+   `flRUSTSC`er.   `| ackrla   `flRUSTSC`ty
+   `fl p   `flRUSTSC` a  sio   `flRUSTSC` HT  ro|
+
+  ato
+   `flRUSTSC`erble,    `su   ` operator pre   `nc  
+   `flRUt' `#  
+ ne-
+   `flRUt' `#  
+ ne co  
+R ne co   `flRUurbg:   ashS bg:   ashbg:   `f|    `flRUtone   cp   `ru
+   `flRUs`y    `flRUs`   `flRUSTSC`8p
+   poire   poityl   `fcr   b   poire   poityl   `fcrls   `flRUSTSCCL   `flteration** — `while    f"    sts   p in    f"    }   `ge co + `bottaalnd"C+ `en"C+  rustsc no
+ ti+ `. i ti+ `.v tx
+ ti+)
+ ti+ `. i ti+ `.v tx
+  s ti+ `  hi ti+ `   ma  tyen  ty ? typr
+e       _test.rsx` for a proof-ofe       
+e  
+  | # e  
+  |ro  Soe Ale
+>p-lev us ait al+
+
+ a-
+ al+   Co ait al+      co ta al  bo
+ a-
+ aldi a f al+      ` al+ le ait al+
+
+ a-
+ alib
+ a-
+ al)*Prerequisites:** [ ast a-
+tp a//`-- al+   To atc`-- al+   Tod  a-
+ al.r
+ a-
+ akeeve a d a-
+at an `lone t a-
+ep agiat an ` is in:/
+   `flRUSTSC` HT  ` int
+   `flRUS ru   `flRUSTS Build
+cd rus   `flRUSTSC` bu sio   `flRUSTSC` HT  y
+|
+
+  ato
+   `flRUSTSC`eript -   `si   `fl p   `flRUSTSC` a  sio   `flRUSTSC` AL
+  ato
+   `flRUSTSC`erble,    `su   ` operator peas   `ag   `flRUt' `#  
+ ne-
+   `flRUt' `#  
+ ne co   binari ne-
+   `flRUtla   rm ne co  
+R ne y:R ne cosh   `flRUs`y    `flRUs`   `flRUSTSC`8p
+   poire   poityl   `fcr   b   el   poire   poityl   `fcr   b   poirecr ti+ `. i ti+ `.v tx
+ ti+)
+ ti+ `. i ti+ `.v tx
+  s ti+ `  hi ti+ `   ma  tyen  ty ? typr
+e       _test.rsx` for a proof-ofe       
+e  
+  | # e  
+  |ro  Soe Ale
+>p-lev   ti+)
+ ti+ `. i ti+il ti+Ru  s ti+ `  hi ti+ ` Ce       _test.rsx` for a proof-ofe         e  
+  | # e  
+  |ro  Soe Ale
+>p-lev us aoi  
+? |ro  S  >p-lev us aitke
+ a-
+ al+   Co aoke ade a-
+ aldi a f al+      ` al+ le aixe ars
+ a-
+ alib
+ a-
+ al)*Prerequisites:???a?a-
+t. a  tp a//`-- al+   To atc`-- al+   al.r
+ a-?── parser.rs        # Recu a-
+e  ascat an `lone t? ep agiat an ` i??   `flRUSTSC` HT  # HT   `flRUS ru   `flRUSTorcd rus   `flRUSTSC` bu sio  pr|
+
+  ato
+   `flRUSTSC`eript -   `si   `fl p ??─   `ex  ato
+   `flRUSTSC`erble,    `su   ` operator peas   `ag   `flRUt' `#em   `?  ne-
+   `flRUt' `#  
+ ne co   binari ne-
+   `flRUtla   rm ne co ??  ?? ne co   binarco   `flRUtla   rm ne R ne y:R ne cosh   `flR?  poire   poityl   `fcr   b   el   poire   poityl  ?? ti+)
+ ti+ `. i ti+ `.v tx
+  s ti+ `  hi ti+ `   ma  tyen  ty ? typr
+e       _test.rsx` f ( ti+as  s ti+ `  hi ti+ `??e       _test.rsx` for a proof-ofe       pte  
+  | # e  
+  |ro  Soe Ale
+>p-lev   ti l  di  |ro  S([>p-lev   ti+)t. ti+ `. i tiin  | # e  
+  |ro.*

@@ -11,6 +11,10 @@ fn fib(n) {
     return fib(n - 1) + fib(n - 2)
 }
 
+fn oogabooga (){
+    println("This is a function with a silly name!")
+}
+
 # ─── Factorial ──────────────────────────────────────────────
 fn factorial(n) {
     if n <= 1 {
@@ -215,7 +219,7 @@ page {
                         transition: "border-color 0.2s"
                     }
 
-                    p "⚡" { style { size: "2rem" mb: "12px" } }
+                    p ">" { style { size: "2rem" mb: "12px" } }
                     h3 "Functions" { style { size: "1.15rem" mb: "8px" fg: "#f0f6fc" } }
                     p "First-class functions with recursion. Turing complete." {
                         style { fg: "#8b949e" size: "0.9rem" lh: "1.5" }
@@ -607,42 +611,42 @@ page {
                 # Feature: Variables
                 div {
                     style { bg: "rgba(255,255,255,0.02)" border: "1px solid #21262d" radius: "12px" pad: "20px" }
-                    p "📦 Variables & Types" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
+                    p "Variables & Types" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
                     p "let, int, float, str, bool, lists — all dynamic" { style { fg: "#6e7681" size: "0.85rem" } }
                 }
 
                 # Feature: Control Flow
                 div {
                     style { bg: "rgba(255,255,255,0.02)" border: "1px solid #21262d" radius: "12px" pad: "20px" }
-                    p "🔀 Control Flow" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
+                    p "Control Flow" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
                     p "if / else, while, for...in — Python-style blocks" { style { fg: "#6e7681" size: "0.85rem" } }
                 }
 
                 # Feature: Functions
                 div {
                     style { bg: "rgba(255,255,255,0.02)" border: "1px solid #21262d" radius: "12px" pad: "20px" }
-                    p "⚡ Functions & Recursion" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
+                    p "Functions & Recursion" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
                     p "fn keyword, return values, full recursion support" { style { fg: "#6e7681" size: "0.85rem" } }
                 }
 
                 # Feature: Reactive UI
                 div {
                     style { bg: "rgba(255,255,255,0.02)" border: "1px solid #21262d" radius: "12px" pad: "20px" }
-                    p "🔄 Reactive UI" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
+                    p "Reactive UI" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
                     p "on click / on input — auto re-renders on state change" { style { fg: "#6e7681" size: "0.85rem" } }
                 }
 
                 # Feature: Custom Styles
                 div {
                     style { bg: "rgba(255,255,255,0.02)" border: "1px solid #21262d" radius: "12px" pad: "20px" }
-                    p "🎨 60+ Style Shorthands" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
+                    p "60+ Style Shorthands" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
                     p "bg, fg, pad, radius, bold, center, row, col..." { style { fg: "#6e7681" size: "0.85rem" } }
                 }
 
                 # Feature: String Interpolation
                 div {
                     style { bg: "rgba(255,255,255,0.02)" border: "1px solid #21262d" radius: "12px" pad: "20px" }
-                    p "✨ String Interpolation" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
+                    p "String Interpolation" { style { fg: "#f0f6fc" weight: "600" mb: "6px" } }
                     p "\"Hello {name}!\" — embed expressions in strings" { style { fg: "#6e7681" size: "0.85rem" } }
                 }
             }
@@ -655,7 +659,7 @@ page {
                     mt: "20px"
                     align: "center"
                 }
-                p "Built with RustScript — written in Rust 🦀" {
+                p "Built with RustScript" {
                     style { fg: "#484f58" size: "0.9rem" }
                 }
                 p "This entire page is a single .rsx file." {
