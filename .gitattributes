@@ -1,0 +1,2 @@
+# Prevent GitHub Linguist from misidentifying .rsx files as R
+*.rsx linguist-detectable=false
