@@ -1,0 +1,201 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "RustScript",
+  "scopeName": "source.rustscript",
+  "fileTypes": ["rsx"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords" },
+    { "include": "#control" },
+    { "include": "#page-keywords" },
+    { "include": "#style-shorthands" },
+    { "include": "#html-tags" },
+    { "include": "#builtins" },
+    { "include": "#functions" },
+    { "include": "#operators" },
+    { "include": "#variables" },
+    { "include": "#booleans" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.rustscript",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.rustscript",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.rustscript",
+              "match": "\\\\[\"\\\\ntr{}]"
+            },
+            {
+              "name": "meta.embedded.expression.rustscript",
+              "begin": "\\{",
+              "end": "\\}",
+              "beginCaptures": {
+                "0": { "name": "punctuation.definition.interpolation.begin.rustscript" }
+              },
+              "endCaptures": {
+                "0": { "name": "punctuation.definition.interpolation.end.rustscript" }
+              },
+              "patterns": [
+                { "include": "#variables" },
+                { "include": "#numbers" },
+                { "include": "#operators" },
+                { "include": "#builtins" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.rustscript",
+          "match": "\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.rustscript",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "booleans": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.rustscript",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.rustscript",
+          "match": "\\b(let|fn)\\b"
+        },
+        {
+          "name": "keyword.control.rustscript",
+          "match": "\\b(return)\\b"
+        }
+      ]
+    },
+    "control": {
+      "patterns": [
+        {
+          "name": "keyword.control.flow.rustscript",
+          "match": "\\b(if|else|while|for|in)\\b"
+        },
+        {
+          "name": "keyword.operator.logical.rustscript",
+          "match": "\\b(and|or|not)\\b"
+        }
+      ]
+    },
+    "page-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.other.page.rustscript",
+          "match": "\\b(page|style|on)\\b"
+        }
+      ]
+    },
+    "style-shorthands": {
+      "patterns": [
+        {
+          "comment": "Style shorthand properties (value-taking)",
+          "name": "support.type.property-name.rustscript",
+          "match": "\\b(size|font|weight|spacing|lh|align|indent|bg|fg|pad|pt|pb|pl|pr|px|py|m|mt|mb|ml|mr|mx|my|w|h|minw|maxw|minh|maxh|radius|shadow|outline|items|justify|self-align|grow|shrink|basis|wrap|gap|cols|grows|pos|z|opacity|transition|transform|filter|backdrop)\\b(?=\\s*:)"
+        },
+        {
+          "comment": "Style flag properties (no value needed)",
+          "name": "support.type.property-name.flag.rustscript",
+          "match": "\\b(bold|italic|underline|strike|uppercase|lowercase|capitalize|row|col|center|hidden|inline|block|grid|pointer|nowrap|clip|scroll|fixed|absolute|relative|sticky)\\b(?=\\s*[^:(a-zA-Z]|\\s*$)"
+        }
+      ]
+    },
+    "html-tags": {
+      "patterns": [
+        {
+          "name": "entity.name.tag.rustscript",
+          "match": "\\b(div|span|p|a|h1|h2|h3|h4|h5|h6|button|input|textarea|select|option|label|form|img|br|hr|ul|ol|li|table|tr|td|th|header|footer|nav|section|main|article|aside|video|audio|canvas|text)\\b"
+        }
+      ]
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.rustscript",
+          "match": "\\b(print|len|str|int|float|type|range|push|pop|abs|min|max)\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "match": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.rustscript" },
+            "2": { "name": "entity.name.function.rustscript" }
+          }
+        },
+        {
+          "name": "entity.name.function.call.rustscript",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.comparison.rustscript",
+          "match": "==|!=|<=|>=|<|>"
+        },
+        {
+          "name": "keyword.operator.assignment.rustscript",
+          "match": "\\+=|-=|="
+        },
+        {
+          "name": "keyword.operator.arithmetic.rustscript",
+          "match": "[+\\-*/%]"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.rustscript",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.rustscript",
+          "match": "[,:]"
+        },
+        {
+          "name": "punctuation.bracket.rustscript",
+          "match": "[{}()\\[\\]]"
+        },
+        {
+          "name": "punctuation.accessor.rustscript",
+          "match": "\\."
+        }
+      ]
+    }
+  }
+}

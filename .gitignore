@@ -1,0 +1,10 @@
+# Build artifacts
+rustscript/target/
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+
+# Generated HTML output
+*.html
