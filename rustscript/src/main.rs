@@ -20,6 +20,66 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 
+use base64_engine::encode as base64_encode;
+
+/// Lightweight base64 encoder (no external crate needed).
+mod base64_engine {
+    const CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    pub fn encode(data: &[u8]) -> String {
+        let mut out = String::with_capacity((data.len() + 2) / 3 * 4);
+        for chunk in data.chunks(3) {
+            let b0 = chunk[0] as u32;
+            let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
+            let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
+            let triple = (b0 << 16) | (b1 << 8) | b2;
+            out.push(CHARS[((triple >> 18) & 0x3F) as usize] as char);
+            out.push(CHARS[((triple >> 12) & 0x3F) as usize] as char);
+            if chunk.len() > 1 {
+                out.push(CHARS[((triple >> 6) & 0x3F) as usize] as char);
+            } else {
+                out.push('=');
+            }
+            if chunk.len() > 2 {
+                out.push(CHARS[(triple & 0x3F) as usize] as char);
+            } else {
+                out.push('=');
+            }
+        }
+        out
+    }
+}
+
+/// File extensions recognized as images for auto-import.
+fn is_image_ext(ext: &str) -> bool {
+    matches!(ext, "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "ico" | "bmp")
+}
+
+/// Map file extension to MIME type.
+fn mime_for_ext(ext: &str) -> &'static str {
+    match ext {
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "svg" => "image/svg+xml",
+        "webp" => "image/webp",
+        "ico" => "image/x-icon",
+        "bmp" => "image/bmp",
+        _ => "application/octet-stream",
+    }
+}
+
+/// Derive a clean variable name from a filename (without extension).
+/// e.g. "my-logo.png" -> "my_logo", "rustscriptlogo.png" -> "rustscriptlogo"
+fn var_name_from_path(path: &Path) -> String {
+    let stem = path.file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("image");
+    stem.chars()
+        .map(|c| if c.is_alphanumeric() || c == '_' { c } else { '_' })
+        .collect()
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -244,6 +304,31 @@ fn resolve_imports(
 
                 if !seen.insert(canonical.clone()) {
                     // Already imported this file, skip to avoid circular imports.
+                    continue;
+                }
+
+                // Check if this is an image import
+                let ext = canonical.extension()
+                    .and_then(|e| e.to_str())
+                    .unwrap_or("")
+                    .to_lowercase();
+
+                if is_image_ext(&ext) {
+                    // Read binary, base64 encode, emit a let binding
+                    let bytes = match fs::read(&canonical) {
+                        Ok(b) => b,
+                        Err(e) => {
+                            eprintln!("Error reading image '{}': {}", path, e);
+                            process::exit(1);
+                        }
+                    };
+                    let mime = mime_for_ext(&ext);
+                    let data_uri = format!("data:{};base64,{}", mime, base64_encode(&bytes));
+                    let var = var_name_from_path(&canonical);
+                    resolved_stmts.push(ast::Stmt::Let {
+                        name: var,
+                        value: ast::Expr::Str(data_uri),
+                    });
                     continue;
                 }
 

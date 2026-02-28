@@ -661,14 +661,49 @@ impl Parser {
         }
     }
 
+    /// Try to consume the current token as a bare word (identifier or keyword used as a name).
+    /// This is needed for style property names like `font-style` or `self-align`
+    /// where a keyword (e.g. `style`, `for`, `in`) appears after a hyphen.
+    fn expect_ident_or_keyword(&mut self) -> Result<String, String> {
+        let (line, col) = self.loc();
+        let name = match self.peek().clone() {
+            Token::Ident(s) => s,
+            Token::Style => "style".to_string(),
+            Token::On => "on".to_string(),
+            Token::If => "if".to_string(),
+            Token::Else => "else".to_string(),
+            Token::While => "while".to_string(),
+            Token::For => "for".to_string(),
+            Token::In => "in".to_string(),
+            Token::Let => "let".to_string(),
+            Token::Fn => "fn".to_string(),
+            Token::Return => "return".to_string(),
+            Token::Import => "import".to_string(),
+            Token::Page => "page".to_string(),
+            Token::True => "true".to_string(),
+            Token::False => "false".to_string(),
+            Token::And => "and".to_string(),
+            Token::Or => "or".to_string(),
+            Token::Not => "not".to_string(),
+            other => {
+                return Err(format!(
+                    "[{}:{}] Expected identifier, got {:?}",
+                    line, col, other
+                ));
+            }
+        };
+        self.advance();
+        Ok(name)
+    }
+
     fn parse_style_props(&mut self) -> Result<Vec<StyleProp>, String> {
         let mut props = Vec::new();
         while *self.peek() != Token::RBrace && !self.at_end() {
-            // property name (may contain hyphens: font-family)
-            let mut name = self.expect_ident()?;
+            // property name (may contain hyphens: font-family, font-style, etc.)
+            let mut name = self.expect_ident_or_keyword()?;
             while *self.peek() == Token::Minus {
                 self.advance();
-                let part = self.expect_ident()?;
+                let part = self.expect_ident_or_keyword()?;
                 name = format!("{}-{}", name, part);
             }
 

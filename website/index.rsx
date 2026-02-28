@@ -2,10 +2,13 @@
 #  RustScript — Landing Page
 #  Build:   rustscript build website/index.rsx -o index.html
 #  Preview: rustscript preview website/index.rsx
+#  Serve:   rustscript serve website/index.rsx
 # ──────────────────────────────────────────────────────────
 
 import "lib/theme.rsx"
+import "lib/logo.png"
 import "components/hero.rsx"
+import "components/about.rsx"
 import "components/features.rsx"
 import "components/demo.rsx"
 import "components/pipeline.rsx"
@@ -26,7 +29,7 @@ page {
     # ════════════════════════════════════════════════════════
     div {
         style {
-            pad: "100px 40px 80px"
+            pad: "80px 40px 60px"
             align: "center"
             bg: "linear-gradient(180deg, #0a0e17 0%, #111827 100%)"
         }
@@ -37,6 +40,18 @@ page {
                 m: "0 auto"
             }
 
+            # Logo
+            img {
+                src: "{logo}"
+                style {
+                    w: "140px"
+                    h: "auto"
+                    mb: "24px"
+                    display: "block"
+                    m: "0 auto 24px"
+                }
+            }
+
             # Badge
             div {
                 style {
@@ -45,7 +60,7 @@ page {
                     border: "1px solid rgba(249, 115, 22, 0.2)"
                     radius: "999px"
                     pad: "6px 18px"
-                    mb: "28px"
+                    mb: "24px"
                     size: "0.8rem"
                     fg: "#f97316"
                     letter-spacing: "0.05em"
@@ -68,11 +83,12 @@ page {
             # Subtitle
             p "{hero_subtitle}" {
                 style {
-                    size: "1.15rem"
-                    lh: "1.7"
+                    size: "1.3rem"
+                    lh: "1.5"
                     fg: "#9ca3af"
                     maxw: "580px"
                     m: "0 auto 40px"
+                    font-style: "italic"
                 }
             }
 
@@ -159,12 +175,65 @@ page {
     }
 
     # ════════════════════════════════════════════════════════
-    #  HOW IT WORKS
+    #  ABOUT / ABSTRACT
     # ════════════════════════════════════════════════════════
     div {
         style {
             pad: "80px 40px"
             bg: "#0a0e17"
+        }
+
+        div {
+            style {
+                maxw: "720px"
+                m: "0 auto"
+            }
+
+            h2 "About" {
+                style {
+                    size: "1.8rem"
+                    weight: "600"
+                    mb: "32px"
+                    align: "center"
+                    fg: "#f9fafb"
+                }
+            }
+
+            p "{about_p1}" {
+                style {
+                    size: "1rem"
+                    lh: "1.8"
+                    fg: "#9ca3af"
+                    mb: "20px"
+                }
+            }
+
+            p "{about_p2}" {
+                style {
+                    size: "1rem"
+                    lh: "1.8"
+                    fg: "#9ca3af"
+                    mb: "20px"
+                }
+            }
+
+            p "{about_p3}" {
+                style {
+                    size: "1rem"
+                    lh: "1.8"
+                    fg: "#9ca3af"
+                }
+            }
+        }
+    }
+
+    # ════════════════════════════════════════════════════════
+    #  HOW IT WORKS
+    # ════════════════════════════════════════════════════════
+    div {
+        style {
+            pad: "80px 40px"
+            bg: "#111827"
         }
 
         div {
@@ -195,7 +264,7 @@ page {
                 # Step 1
                 div {
                     style {
-                        bg: "#111827"
+                        bg: "#0a0e17"
                         border: "1px solid #1f2937"
                         radius: "12px"
                         pad: "28px"
@@ -222,7 +291,7 @@ page {
                 # Step 2
                 div {
                     style {
-                        bg: "#111827"
+                        bg: "#0a0e17"
                         border: "1px solid #1f2937"
                         radius: "12px"
                         pad: "28px"
@@ -249,7 +318,7 @@ page {
                 # Step 3
                 div {
                     style {
-                        bg: "#111827"
+                        bg: "#0a0e17"
                         border: "1px solid #1f2937"
                         radius: "12px"
                         pad: "28px"
@@ -276,7 +345,7 @@ page {
     div {
         style {
             pad: "80px 40px"
-            bg: "#111827"
+            bg: "#0a0e17"
         }
 
         div {
@@ -314,7 +383,7 @@ page {
                 # Feature 1
                 div {
                     style {
-                        bg: "#0a0e17"
+                        bg: "#111827"
                         border: "1px solid #1f2937"
                         radius: "10px"
                         pad: "24px"
@@ -342,7 +411,7 @@ page {
                 # Feature 2
                 div {
                     style {
-                        bg: "#0a0e17"
+                        bg: "#111827"
                         border: "1px solid #1f2937"
                         radius: "10px"
                         pad: "24px"
@@ -370,7 +439,7 @@ page {
                 # Feature 3
                 div {
                     style {
-                        bg: "#0a0e17"
+                        bg: "#111827"
                         border: "1px solid #1f2937"
                         radius: "10px"
                         pad: "24px"
@@ -398,7 +467,7 @@ page {
                 # Feature 4
                 div {
                     style {
-                        bg: "#0a0e17"
+                        bg: "#111827"
                         border: "1px solid #1f2937"
                         radius: "10px"
                         pad: "24px"
@@ -426,7 +495,7 @@ page {
                 # Feature 5
                 div {
                     style {
-                        bg: "#0a0e17"
+                        bg: "#111827"
                         border: "1px solid #1f2937"
                         radius: "10px"
                         pad: "24px"
@@ -454,7 +523,7 @@ page {
                 # Feature 6
                 div {
                     style {
-                        bg: "#0a0e17"
+                        bg: "#111827"
                         border: "1px solid #1f2937"
                         radius: "10px"
                         pad: "24px"
@@ -488,7 +557,7 @@ page {
     div {
         style {
             pad: "80px 40px"
-            bg: "#0a0e17"
+            bg: "#111827"
         }
 
         div {
@@ -519,7 +588,7 @@ page {
             # Demo card
             div {
                 style {
-                    bg: "#111827"
+                    bg: "#0a0e17"
                     border: "1px solid #1f2937"
                     radius: "12px"
                     pad: "40px"
@@ -604,7 +673,7 @@ page {
             # Source code preview
             div {
                 style {
-                    bg: "#111827"
+                    bg: "#0a0e17"
                     border: "1px solid #1f2937"
                     radius: "12px"
                     pad: "24px"
@@ -694,7 +763,7 @@ page {
     div {
         style {
             pad: "80px 40px"
-            bg: "#111827"
+            bg: "#0a0e17"
         }
 
         div {
@@ -723,7 +792,7 @@ page {
 
             div {
                 style {
-                    bg: "#0a0e17"
+                    bg: "#111827"
                     border: "1px solid #1f2937"
                     radius: "10px"
                     pad: "20px 24px"
@@ -748,7 +817,7 @@ page {
 
             div {
                 style {
-                    bg: "#0a0e17"
+                    bg: "#111827"
                     border: "1px solid #1f2937"
                     radius: "10px"
                     pad: "20px 24px"

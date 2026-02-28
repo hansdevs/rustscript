@@ -56,6 +56,25 @@ fn resolve_imports_server(
                     continue;
                 }
 
+                // Check if this is an image import
+                let ext = canonical.extension()
+                    .and_then(|e| e.to_str())
+                    .unwrap_or("")
+                    .to_lowercase();
+
+                if crate::is_image_ext(&ext) {
+                    let bytes = fs::read(&canonical)
+                        .map_err(|e| format!("Error reading image '{}': {}", path, e))?;
+                    let mime = crate::mime_for_ext(&ext);
+                    let data_uri = format!("data:{};base64,{}", mime, crate::base64_encode(&bytes));
+                    let var = crate::var_name_from_path(&canonical);
+                    resolved_stmts.push(ast::Stmt::Let {
+                        name: var,
+                        value: ast::Expr::Str(data_uri),
+                    });
+                    continue;
+                }
+
                 let source = fs::read_to_string(&canonical)
                     .map_err(|e| format!("Error reading import '{}': {}", path, e))?;
 
