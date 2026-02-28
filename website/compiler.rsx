@@ -722,65 +722,6 @@ page {
     }
 
     # ════════════════════════════════════════════════════════
-    #  ACCELERATED BY CLAUDE
-    # ════════════════════════════════════════════════════════
-    div {
-        style {
-            pad: "60px 40px"
-            maxw: "900px"
-            mx: "auto"
-        }
-
-        div {
-            style {
-                bg: "linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(249, 115, 22, 0.08))"
-                border: "1px solid rgba(168, 85, 247, 0.2)"
-                radius: "16px"
-                pad: "40px"
-                align: "center"
-            }
-
-            span "AI-ACCELERATED" {
-                style {
-                    display: "inline-block"
-                    bg: "rgba(168, 85, 247, 0.15)"
-                    fg: "#a855f7"
-                    pad: "6px 16px"
-                    radius: "999px"
-                    size: "0.75rem"
-                    weight: "600"
-                    spacing: "0.1em"
-                    mb: "20px"
-                    border: "1px solid rgba(168, 85, 247, 0.3)"
-                }
-            }
-
-            h2 "Built with Claude" {
-                style { size: "1.6rem" weight: "700" fg: "white" mb: "16px" }
-            }
-
-            p "Development of RustScript was accelerated with Claude by Anthropic. From compiler architecture decisions to debugging parser edge cases, Claude served as an always-available pair programming partner throughout the hackathon. The human-AI collaboration enabled rapid iteration on the lexer, parser, code generator, dev server, import system, and this very website — all within the hackathon timeframe." {
-                style {
-                    size: "1rem"
-                    fg: "#9ca3af"
-                    lh: "1.8"
-                    maxw: "600px"
-                    mx: "auto"
-                    mb: "24px"
-                }
-            }
-
-            p "Architecture by Hans. Accelerated by Claude. Powered by Rust." {
-                style {
-                    size: "0.9rem"
-                    fg: "#6b7280"
-                    font-style: "italic"
-                }
-            }
-        }
-    }
-
-    # ════════════════════════════════════════════════════════
     #  FOOTER
     # ════════════════════════════════════════════════════════
     div {
