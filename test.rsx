@@ -147,7 +147,7 @@ page {
                     }
                 }
 
-                button "cargo install rustscript" {
+                button "curl -fsSL …/install.sh | sh" {
                     style {
                         bg: "rgba(255,255,255,0.05)"
                         fg: "#e2e8f0"

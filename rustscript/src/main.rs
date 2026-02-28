@@ -31,6 +31,9 @@ fn main() {
         "build" => cmd_build(&args[2..]),
         "run" => cmd_run(&args[2..]),
         "help" | "--help" | "-h" => print_usage(),
+        "--version" | "-V" | "version" => {
+            println!("rustscript {}", env!("CARGO_PKG_VERSION"));
+        }
         other => {
             // If they just pass a file, default to preview
             if other.ends_with(".rsx") {

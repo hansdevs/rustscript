@@ -2,24 +2,60 @@
 
 **Where HTML, CSS & Python had a child.**
 
-RustScript is a Turing-complete programming language compiled from Rust. Write a single `.rsx` file with Python-like logic, HTML-like structure, and CSS-like styling — then preview it instantly in your browser.
+RustScript is a Turing-complete programming language. Write a single `.rsx` file with Python-like logic, HTML-like structure, and CSS-like styling — then preview it instantly in your browser.
+
+**No Rust toolchain required.** Download a single binary and go.
+
+---
+
+## Install
+
+### One-liner (macOS / Linux)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/user/rustscript/main/install.sh | sh
+```
+
+This auto-detects your OS and architecture, downloads the correct binary, and puts it in `/usr/local/bin`.
+
+### Manual download
+
+Grab the binary for your platform from [Releases](https://github.com/user/rustscript/releases):
+
+| Platform | Binary |
+|----------|--------|
+| macOS Apple Silicon | `rustscript-darwin-aarch64` |
+| macOS Intel | `rustscript-darwin-x86_64` |
+| Linux x86_64 | `rustscript-linux-x86_64` |
+| Linux ARM64 | `rustscript-linux-aarch64` |
+| Windows x86_64 | `rustscript-windows-x86_64.exe` |
+
+Then make it executable and move it onto your PATH:
+
+```bash
+chmod +x rustscript-darwin-aarch64
+sudo mv rustscript-darwin-aarch64 /usr/local/bin/rustscript
+```
+
+### Verify
+
+```bash
+rustscript --version
+```
 
 ---
 
 ## Quick Start
 
 ```bash
-cd rustscript
-cargo build --release
-
 # Preview any .rsx file instantly in your browser
-./target/release/rustscript preview myapp.rsx
+rustscript preview myapp.rsx
 
 # Or build to a specific HTML file
-./target/release/rustscript build myapp.rsx -o myapp.html
+rustscript build myapp.rsx -o myapp.html
 
 # Run logic-only in the terminal
-./target/release/rustscript run myapp.rsx
+rustscript run myapp.rsx
 ```
 
 ---
@@ -659,3 +695,30 @@ This is sufficient to simulate any Turing machine.
 
 RustScript files use the `.rsx` extension. A VS Code extension is included in `rustscript-vscode/` for syntax highlighting.
 
+---
+
+## Build from Source (contributors only)
+
+Most users should use the [install script](#install) above. If you want to build from source:
+
+**Prerequisites:** Rust ≥ 1.85 (`edition = "2024"`)
+
+```bash
+cd rustscript
+cargo build --release
+./target/release/rustscript --version
+
+# Install to ~/.cargo/bin
+make install
+```
+
+### Cutting a Release
+
+Tag a version and push — GitHub Actions will build binaries for all platforms:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Binaries appear on the [Releases](https://github.com/user/rustscript/releases) page automatically.
