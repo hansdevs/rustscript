@@ -1,8 +1,6 @@
 # RustScript
 
-**Where HTML, CSS & Python had a child.**
-
-RustScript is a Turing-complete programming language that compiles to self-contained HTML. Write a single `.rsx` file with Python-like logic, HTML-like structure, and CSS-like styling — then preview it instantly in your browser.
+A compiled language that turns a single `.rsx` file into a self-contained HTML page. Python-like syntax. Built-in UI. No framework needed.
 
 **No Rust toolchain required.** Download a single binary and go.
 

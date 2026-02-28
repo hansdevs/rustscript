@@ -1,4 +1,4 @@
-/// RustScript — a language where HTML, CSS and Python had a child.
+/// RustScript — a compiled language that turns .rsx into self-contained HTML.
 ///
 /// Usage:
 ///   rustscript preview <file.rsx>                      Build + open in browser
