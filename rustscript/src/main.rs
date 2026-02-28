@@ -12,6 +12,7 @@ mod ast;
 mod parser;
 mod codegen;
 mod interpreter;
+mod server;
 
 use std::collections::HashSet;
 use std::env;
@@ -31,6 +32,7 @@ fn main() {
         "preview" => cmd_preview(&args[2..]),
         "build" => cmd_build(&args[2..]),
         "run" => cmd_run(&args[2..]),
+        "serve" => cmd_serve(&args[2..]),
         "help" | "--help" | "-h" => print_usage(),
         "--version" | "-V" | "version" => {
             println!("rustscript {}", env!("CARGO_PKG_VERSION"));
@@ -163,6 +165,33 @@ fn cmd_run(args: &[String]) {
     }
 }
 
+fn cmd_serve(args: &[String]) {
+    if args.is_empty() {
+        eprintln!("Error: No input file specified.");
+        eprintln!("Usage: rustscript serve <file.rsx> [-p port]");
+        process::exit(1);
+    }
+
+    let input = &args[0];
+    let mut port: u16 = 8080;
+
+    // Parse optional -p flag
+    let mut i = 1;
+    while i < args.len() {
+        if args[i] == "-p" && i + 1 < args.len() {
+            port = args[i + 1].parse().unwrap_or_else(|_| {
+                eprintln!("Error: Invalid port '{}'", args[i + 1]);
+                process::exit(1);
+            });
+            i += 2;
+        } else {
+            i += 1;
+        }
+    }
+
+    server::serve(input, port);
+}
+
 /// Lex and parse a single .rsx file into a Program AST.
 fn parse_file(path: &str) -> ast::Program {
     let source = match fs::read_to_string(path) {
@@ -252,6 +281,9 @@ USAGE:
   rustscript run <file.rsx>
       Interpret a .rsx file in the terminal (logic only).
 
+  rustscript serve <file.rsx> [-p port]
+      Start a dev server with live reload (default port: 8080).
+
   rustscript help
       Show this help message.
 
@@ -262,6 +294,8 @@ EXAMPLES:
   rustscript build app.rsx            # compile to app.html
   rustscript build app.rsx -o out.html
   rustscript run logic.rsx            # run in terminal
+  rustscript serve website/index.rsx  # dev server on localhost:8080
+  rustscript serve app.rsx -p 3000    # custom port
 "#
     );
 }
