@@ -45,13 +45,21 @@ A compiled language that turns a single `.rsx` file into a self-contained HTML p
 
 ## Install
 
-### One-liner (no Rust required)
+### One-liner (recommended)
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/hansdevs/rustscript/main/install.sh | sh
 ```
 
-Downloads a pre-built binary for your platform and installs to `/usr/local/bin`.
+No Rust toolchain required. The installer auto-detects your platform, downloads the correct pre-built binary, verifies it, and adds it to your PATH.
+
+**Supported platforms:**
+
+| Platform | Architecture |
+|----------|-------------|
+| macOS | Apple Silicon (aarch64), Intel (x86_64) |
+| Linux | x86_64, aarch64 |
+| Windows | x86_64 |
 
 ### From source
 
@@ -59,6 +67,8 @@ Downloads a pre-built binary for your platform and installs to `/usr/local/bin`.
 git clone https://github.com/hansdevs/rustscript
 cd rustscript && make install
 ```
+
+Requires the [Rust toolchain](https://rustup.rs).
 
 ---
 
@@ -413,7 +423,30 @@ rustscript preview counter.rsx
 
 ## VS Code Extension
 
-Syntax highlighting for `.rsx` files is included in the `rustscript-vscode/` directory.
+The RustScript extension for VS Code adds first-class `.rsx` support:
+
+- **Syntax highlighting** for all RustScript constructs
+- **File icon** in the explorer and tabs
+- **Bracket matching** and auto-closing
+- **Comment toggling** (`Cmd+/` / `Ctrl+/`)
+
+### Install from Marketplace
+
+Search for **"RustScript"** in the VS Code Extensions tab, or run:
+
+```
+ext install Hansg123.rustscript
+```
+
+### Install from source
+
+The extension source is in the `rustscript-vscode/` directory. To package and install locally:
+
+```sh
+cd rustscript-vscode
+npx @vscode/vsce package
+code --install-extension rustscript-*.vsix
+```
 
 ---
 

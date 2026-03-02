@@ -62,11 +62,11 @@ page {
             style { display: "flex" gap: "24px" align-items: "center" }
 
             a "Home" {
-                href: "index.html"
+                href: "./"
                 style { fg: "#f97316" text-decoration: "none" size: "0.9rem" weight: "600" }
             }
             a "Compiler" {
-                href: "compiler.html"
+                href: "compiler/"
                 style { fg: "#9ca3af" text-decoration: "none" size: "0.9rem" }
             }
         }
@@ -1002,7 +1002,10 @@ page {
             style { fg: "#4b5563" size: "0.85rem" mb: "4px" }
         }
         p "{footer_sub}" {
-            style { fg: "#374151" size: "0.75rem" }
+            style { fg: "#374151" size: "0.75rem" mb: "12px" }
+        }
+        p "© 2026 Hans Gamlien. All rights reserved." {
+            style { fg: "#374151" size: "0.7rem" }
         }
     }
 }

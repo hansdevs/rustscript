@@ -1,6 +1,6 @@
 # ──────────────────────────────────────────────────────────
 #  RustScript — Compiler Deep Dive
-#  Build:   rustscript build website/compiler.rsx -o compiler.html
+#  Build:   rustscript build website/compiler.rsx -o compiler/index.html
 # ──────────────────────────────────────────────────────────
 
 import "lib/theme.rsx"
@@ -41,7 +41,7 @@ page {
                 style { h: "32px" w: "auto" }
             }
             a "RustScript" {
-                href: "index.html"
+                href: "./"
                 style {
                     fg: "#f97316"
                     size: "1.1rem"
@@ -55,11 +55,11 @@ page {
             style { display: "flex" gap: "24px" align-items: "center" }
 
             a "Home" {
-                href: "index.html"
+                href: "./"
                 style { fg: "#9ca3af" text-decoration: "none" size: "0.9rem" }
             }
             a "Compiler" {
-                href: "compiler.html"
+                href: "compiler/"
                 style { fg: "#f97316" text-decoration: "none" size: "0.9rem" weight: "600" }
             }
         }
@@ -735,7 +735,10 @@ page {
             style { fg: "#4b5563" size: "0.85rem" mb: "4px" }
         }
         p "Zero dependencies. One file in, one file out." {
-            style { fg: "#374151" size: "0.75rem" }
+            style { fg: "#374151" size: "0.75rem" mb: "12px" }
+        }
+        p "© 2026 Hans Gamlien. All rights reserved." {
+            style { fg: "#374151" size: "0.7rem" }
         }
     }
 }

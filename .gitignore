@@ -9,7 +9,7 @@ rustscript/target/
 # Generated HTML output (except Pages root)
 *.html
 !index.html
-!compiler.html
+!compiler/index.html
 /test.rsx
 .rustscript-*.log
 .rustscript-*.json
