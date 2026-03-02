@@ -41,7 +41,7 @@ page {
                 style { h: "32px" w: "auto" }
             }
             a "RustScript" {
-                href: "./"
+                href: "../"
                 style {
                     fg: "#f97316"
                     size: "1.1rem"
@@ -55,11 +55,11 @@ page {
             style { display: "flex" gap: "24px" align-items: "center" }
 
             a "Home" {
-                href: "./"
+                href: "../"
                 style { fg: "#9ca3af" text-decoration: "none" size: "0.9rem" }
             }
             a "Compiler" {
-                href: "compiler/"
+                href: "./"
                 style { fg: "#f97316" text-decoration: "none" size: "0.9rem" weight: "600" }
             }
         }
