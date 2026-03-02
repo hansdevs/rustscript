@@ -39,6 +39,7 @@ A compiled language that turns a single `.rsx` file into a self-contained HTML p
 - [Turing Completeness](#turing-completeness)
 - [Building from Source](#building-from-source)
 - [Architecture](#architecture)
+- [Version History](#version-history)
 
 ---
 
@@ -473,6 +474,30 @@ Zero external dependencies. ~3,500 lines of Rust.
 **String methods:** `.upper()`, `.lower()`, `.trim()`, `.contains(s)`, `.split(delim)`, `.length`
 
 **List methods:** `.join(delim)`, `.length`
+
+---
+
+## Version History
+
+### v0.1.1 — March 1, 2026
+
+- **Local preview output** — `rustscript preview` now writes to `.rustscript/` alongside source files instead of the OS temp directory. Auto-generates `.gitignore` to keep build artifacts out of git.
+- **Compiler cleanup** — resolved all 14 clippy warnings, ran `cargo fmt`, converted module doc comments to inner docs.
+- **Deduplicated internals** — consolidated duplicate import resolver and browser-open logic into shared implementations.
+- **Rust 2024 idioms** — collapsed nested if-let chains using let-chains, replaced manual `div_ceil`, removed dead code.
+- **Version history on website** — added a version history section to the landing page with styled release cards.
+
+### v0.1.0 — February 28, 2026 · Original HackUSU Edition 🏆
+
+- Initial release.
+- Full compiler pipeline: lexer → parser → AST → codegen (HTML/CSS/JS).
+- Tree-walking interpreter for `run` mode.
+- Dev server with live reload (`serve` mode).
+- VS Code extension with syntax highlighting.
+- One-line installer for macOS (ARM + Intel) and Linux.
+- Image imports with auto base64 inlining.
+- Style shorthand system (40+ CSS shorthands).
+- Turing-complete language with functions, loops, lists, and string interpolation.
 
 ---
 

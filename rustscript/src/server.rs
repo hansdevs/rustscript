@@ -1,6 +1,6 @@
-/// Dev server for RustScript.
-/// Serves compiled .rsx files over HTTP with live-reload on file changes.
-/// Pure std library — no external dependencies.
+//! Dev server for RustScript.
+//! Serves compiled .rsx files over HTTP with live-reload on file changes.
+//! Pure std library — no external dependencies.
 
 use std::collections::HashSet;
 use std::fs;
@@ -19,26 +19,25 @@ fn compile(input: &Path) -> Result<String, String> {
         .map_err(|e| format!("Error reading '{}': {}", input.display(), e))?;
 
     let mut lex = lexer::Lexer::new(&source);
-    let tokens = lex.tokenize()
-        .map_err(|e| format!("Lexer error: {}", e))?;
+    let tokens = lex.tokenize().map_err(|e| format!("Lexer error: {}", e))?;
 
     let mut p = parser::Parser::new(tokens);
-    let program = p.parse_program()
+    let program = p
+        .parse_program()
         .map_err(|e| format!("Parse error: {}", e))?;
 
     let base_dir = input.parent().unwrap_or_else(|| Path::new("."));
-    let canonical = fs::canonicalize(input)
-        .unwrap_or_else(|_| input.to_path_buf());
+    let canonical = fs::canonicalize(input).unwrap_or_else(|_| input.to_path_buf());
     let mut seen = HashSet::new();
     seen.insert(canonical);
-    let resolved = resolve_imports_server(program, base_dir, &mut seen)?;
+    let resolved = resolve_imports(program, base_dir, &mut seen)?;
 
     let mut cgen = codegen::Codegen::new();
     Ok(cgen.generate(&resolved))
 }
 
-/// Resolve imports (server-side version that returns Result instead of exiting).
-fn resolve_imports_server(
+/// Resolve imports (returns Result instead of exiting).
+pub(crate) fn resolve_imports(
     program: ast::Program,
     base_dir: &Path,
     seen: &mut HashSet<PathBuf>,
@@ -57,7 +56,8 @@ fn resolve_imports_server(
                 }
 
                 // Check if this is an image import
-                let ext = canonical.extension()
+                let ext = canonical
+                    .extension()
                     .and_then(|e| e.to_str())
                     .unwrap_or("")
                     .to_lowercase();
@@ -79,15 +79,17 @@ fn resolve_imports_server(
                     .map_err(|e| format!("Error reading import '{}': {}", path, e))?;
 
                 let mut lex = lexer::Lexer::new(&source);
-                let tokens = lex.tokenize()
+                let tokens = lex
+                    .tokenize()
                     .map_err(|e| format!("Lexer error in '{}': {}", path, e))?;
 
                 let mut p = parser::Parser::new(tokens);
-                let imported = p.parse_program()
+                let imported = p
+                    .parse_program()
                     .map_err(|e| format!("Parse error in '{}': {}", path, e))?;
 
                 let child_dir = canonical.parent().unwrap_or_else(|| Path::new("."));
-                let child_resolved = resolve_imports_server(imported, child_dir, seen)?;
+                let child_resolved = resolve_imports(imported, child_dir, seen)?;
                 resolved_stmts.extend(child_resolved.stmts);
             }
             other => {
@@ -96,7 +98,9 @@ fn resolve_imports_server(
         }
     }
 
-    Ok(ast::Program { stmts: resolved_stmts })
+    Ok(ast::Program {
+        stmts: resolved_stmts,
+    })
 }
 
 /// JavaScript snippet injected into every served page.
@@ -126,13 +130,13 @@ const LIVE_RELOAD_SCRIPT: &str = r#"
 fn collect_mtimes(input: &Path) -> u128 {
     let mut total: u128 = 0;
 
-    if let Ok(meta) = fs::metadata(input) {
-        if let Ok(modified) = meta.modified() {
-            total += modified
-                .duration_since(SystemTime::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_millis();
-        }
+    if let Ok(meta) = fs::metadata(input)
+        && let Ok(modified) = meta.modified()
+    {
+        total += modified
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis();
     }
 
     // Also scan for imported files
@@ -141,21 +145,21 @@ fn collect_mtimes(input: &Path) -> u128 {
             let trimmed = line.trim();
             if trimmed.starts_with("import ") {
                 // Extract path from: import "something.rsx"
-                if let Some(start) = trimmed.find('"') {
-                    if let Some(end) = trimmed[start + 1..].find('"') {
-                        let import_path = &trimmed[start + 1..start + 1 + end];
-                        let resolved = input
-                            .parent()
-                            .unwrap_or_else(|| Path::new("."))
-                            .join(import_path);
-                        if let Ok(meta) = fs::metadata(&resolved) {
-                            if let Ok(modified) = meta.modified() {
-                                total += modified
-                                    .duration_since(SystemTime::UNIX_EPOCH)
-                                    .unwrap_or_default()
-                                    .as_millis();
-                            }
-                        }
+                if let Some(start) = trimmed.find('"')
+                    && let Some(end) = trimmed[start + 1..].find('"')
+                {
+                    let import_path = &trimmed[start + 1..start + 1 + end];
+                    let resolved = input
+                        .parent()
+                        .unwrap_or_else(|| Path::new("."))
+                        .join(import_path);
+                    if let Ok(meta) = fs::metadata(&resolved)
+                        && let Ok(modified) = meta.modified()
+                    {
+                        total += modified
+                            .duration_since(SystemTime::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_millis();
                     }
                 }
             }
@@ -173,8 +177,7 @@ pub fn serve(input: &str, port: u16) {
         std::process::exit(1);
     }
 
-    let canonical = fs::canonicalize(&input_path)
-        .unwrap_or_else(|_| input_path.clone());
+    let canonical = fs::canonicalize(&input_path).unwrap_or_else(|_| input_path.clone());
 
     // Shared mtime hash for live reload
     let mtime_hash: Arc<Mutex<String>> = Arc::new(Mutex::new(String::new()));
@@ -207,24 +210,7 @@ pub fn serve(input: &str, port: u16) {
     println!("Live reload active. Press Ctrl+C to stop.\n");
 
     // Open browser
-    #[cfg(target_os = "macos")]
-    {
-        let _ = std::process::Command::new("open")
-            .arg(format!("http://localhost:{}", port))
-            .spawn();
-    }
-    #[cfg(target_os = "linux")]
-    {
-        let _ = std::process::Command::new("xdg-open")
-            .arg(format!("http://localhost:{}", port))
-            .spawn();
-    }
-    #[cfg(target_os = "windows")]
-    {
-        let _ = std::process::Command::new("cmd")
-            .args(["/C", "start", "", &format!("http://localhost:{}", port)])
-            .spawn();
-    }
+    crate::open_in_browser(&format!("http://localhost:{}", port));
 
     for stream in listener.incoming() {
         let mut stream = match stream {
@@ -249,10 +235,7 @@ pub fn serve(input: &str, port: u16) {
 
         match path {
             "/__reload" => {
-                let hash = mtime_hash
-                    .lock()
-                    .map(|h| h.clone())
-                    .unwrap_or_default();
+                let hash = mtime_hash.lock().map(|h| h.clone()).unwrap_or_default();
                 let response = format!(
                     "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nCache-Control: no-cache\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\n\r\n{}",
                     hash.len(),

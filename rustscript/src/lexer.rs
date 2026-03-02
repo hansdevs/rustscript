@@ -1,4 +1,4 @@
-/// Lexer for RustScript – converts source text into a stream of tokens.
+//! Lexer for RustScript – converts source text into a stream of tokens.
 
 use crate::token::{Spanned, Token};
 
@@ -132,23 +132,74 @@ impl Lexer {
                 }
 
                 // ── single-char tokens ──
-                '+' => { self.advance(); Token::Plus }
-                '-' => { self.advance(); Token::Minus }
-                '*' => { self.advance(); Token::Star }
-                '/' => { self.advance(); Token::Slash }
-                '%' => { self.advance(); Token::Percent }
-                '=' => { self.advance(); Token::Assign }
-                '<' => { self.advance(); Token::Lt }
-                '>' => { self.advance(); Token::Gt }
-                '(' => { self.advance(); Token::LParen }
-                ')' => { self.advance(); Token::RParen }
-                '{' => { self.advance(); Token::LBrace }
-                '}' => { self.advance(); Token::RBrace }
-                '[' => { self.advance(); Token::LBracket }
-                ']' => { self.advance(); Token::RBracket }
-                ',' => { self.advance(); Token::Comma }
-                ':' => { self.advance(); Token::Colon }
-                '.' => { self.advance(); Token::Dot }
+                '+' => {
+                    self.advance();
+                    Token::Plus
+                }
+                '-' => {
+                    self.advance();
+                    Token::Minus
+                }
+                '*' => {
+                    self.advance();
+                    Token::Star
+                }
+                '/' => {
+                    self.advance();
+                    Token::Slash
+                }
+                '%' => {
+                    self.advance();
+                    Token::Percent
+                }
+                '=' => {
+                    self.advance();
+                    Token::Assign
+                }
+                '<' => {
+                    self.advance();
+                    Token::Lt
+                }
+                '>' => {
+                    self.advance();
+                    Token::Gt
+                }
+                '(' => {
+                    self.advance();
+                    Token::LParen
+                }
+                ')' => {
+                    self.advance();
+                    Token::RParen
+                }
+                '{' => {
+                    self.advance();
+                    Token::LBrace
+                }
+                '}' => {
+                    self.advance();
+                    Token::RBrace
+                }
+                '[' => {
+                    self.advance();
+                    Token::LBracket
+                }
+                ']' => {
+                    self.advance();
+                    Token::RBracket
+                }
+                ',' => {
+                    self.advance();
+                    Token::Comma
+                }
+                ':' => {
+                    self.advance();
+                    Token::Colon
+                }
+                '.' => {
+                    self.advance();
+                    Token::Dot
+                }
 
                 other => {
                     return Err(format!(
@@ -183,13 +234,35 @@ impl Lexer {
                 Some('\\') => {
                     self.advance();
                     match self.peek() {
-                        Some('n') => { self.advance(); buf.push('\n'); }
-                        Some('t') => { self.advance(); buf.push('\t'); }
-                        Some('\\') => { self.advance(); buf.push('\\'); }
-                        Some('"') => { self.advance(); buf.push('"'); }
-                        Some('{') => { self.advance(); buf.push('\u{E000}'); }
-                        Some('}') => { self.advance(); buf.push('\u{E001}'); }
-                        Some(c) => { self.advance(); buf.push('\\'); buf.push(c); }
+                        Some('n') => {
+                            self.advance();
+                            buf.push('\n');
+                        }
+                        Some('t') => {
+                            self.advance();
+                            buf.push('\t');
+                        }
+                        Some('\\') => {
+                            self.advance();
+                            buf.push('\\');
+                        }
+                        Some('"') => {
+                            self.advance();
+                            buf.push('"');
+                        }
+                        Some('{') => {
+                            self.advance();
+                            buf.push('\u{E000}');
+                        }
+                        Some('}') => {
+                            self.advance();
+                            buf.push('\u{E001}');
+                        }
+                        Some(c) => {
+                            self.advance();
+                            buf.push('\\');
+                            buf.push(c);
+                        }
                         None => {
                             return Err(format!(
                                 "[{}:{}] Unterminated string",

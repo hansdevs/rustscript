@@ -35,26 +35,26 @@ pub enum Token {
     Star,
     Slash,
     Percent,
-    Assign,    // =
-    Eq,        // ==
-    NotEq,     // !=
-    Lt,        // <
-    Gt,        // >
-    LtEq,      // <=
-    GtEq,      // >=
-    PlusAssign, // +=
-    MinusAssign,// -=
+    Assign,      // =
+    Eq,          // ==
+    NotEq,       // !=
+    Lt,          // <
+    Gt,          // >
+    LtEq,        // <=
+    GtEq,        // >=
+    PlusAssign,  // +=
+    MinusAssign, // -=
 
     // ── Delimiters ───────────────────────────────────────────
-    LParen,    // (
-    RParen,    // )
-    LBrace,    // {
-    RBrace,    // }
-    LBracket,  // [
-    RBracket,  // ]
-    Comma,     // ,
-    Colon,     // :
-    Dot,       // .
+    LParen,   // (
+    RParen,   // )
+    LBrace,   // {
+    RBrace,   // }
+    LBracket, // [
+    RBracket, // ]
+    Comma,    // ,
+    Colon,    // :
+    Dot,      // .
 
     // ── Special ──────────────────────────────────────────────
     Eof,
@@ -75,15 +75,45 @@ impl Token {
 pub fn is_html_tag(name: &str) -> bool {
     matches!(
         name,
-        "div" | "span" | "p" | "a"
-            | "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
-            | "button" | "input" | "textarea" | "select" | "option" | "label"
-            | "form" | "img" | "br" | "hr"
-            | "ul" | "ol" | "li"
-            | "table" | "tr" | "td" | "th"
-            | "header" | "footer" | "nav" | "section" | "main" | "article" | "aside"
-            | "video" | "audio" | "canvas"
-            | "pre" | "code"
+        "div"
+            | "span"
+            | "p"
+            | "a"
+            | "h1"
+            | "h2"
+            | "h3"
+            | "h4"
+            | "h5"
+            | "h6"
+            | "button"
+            | "input"
+            | "textarea"
+            | "select"
+            | "option"
+            | "label"
+            | "form"
+            | "img"
+            | "br"
+            | "hr"
+            | "ul"
+            | "ol"
+            | "li"
+            | "table"
+            | "tr"
+            | "td"
+            | "th"
+            | "header"
+            | "footer"
+            | "nav"
+            | "section"
+            | "main"
+            | "article"
+            | "aside"
+            | "video"
+            | "audio"
+            | "canvas"
+            | "pre"
+            | "code"
             | "text"
     )
 }

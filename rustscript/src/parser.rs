@@ -1,7 +1,7 @@
-/// Recursive-descent parser for RustScript.
+//! Recursive-descent parser for RustScript.
 
 use crate::ast::*;
-use crate::token::{is_html_tag, Spanned, Token};
+use crate::token::{Spanned, Token, is_html_tag};
 
 pub struct Parser {
     tokens: Vec<Spanned>,
@@ -151,8 +151,15 @@ impl Parser {
         // If next token starts a new statement or is }, no return value
         if matches!(
             self.peek(),
-            Token::RBrace | Token::Eof | Token::Let | Token::Fn | Token::Return
-                | Token::If | Token::While | Token::For | Token::Page
+            Token::RBrace
+                | Token::Eof
+                | Token::Let
+                | Token::Fn
+                | Token::Return
+                | Token::If
+                | Token::While
+                | Token::For
+                | Token::Page
         ) {
             return Ok(Stmt::Return(None));
         }
@@ -635,7 +642,9 @@ impl Parser {
                     let (l, c) = self.loc();
                     return Err(format!(
                         "[{}:{}] Unexpected token in element body: {:?}",
-                        l, c, self.peek()
+                        l,
+                        c,
+                        self.peek()
                     ));
                 }
             }
@@ -720,14 +729,19 @@ impl Parser {
                         let (l, c) = self.loc();
                         return Err(format!(
                             "[{}:{}] Style value must be a quoted string, got {:?}",
-                            l, c, self.peek()
+                            l,
+                            c,
+                            self.peek()
                         ));
                     }
                 };
                 props.push(StyleProp { name, value });
             } else {
                 // Flag property — no value (codegen decides the CSS output)
-                props.push(StyleProp { name, value: String::new() });
+                props.push(StyleProp {
+                    name,
+                    value: String::new(),
+                });
             }
         }
         Ok(props)

@@ -10,3 +10,7 @@ rustscript/target/
 *.html
 !index.html
 !compiler.html
+/test.rsx
+.rustscript-*.log
+.rustscript-*.json
+/.rustscript

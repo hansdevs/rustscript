@@ -731,7 +731,7 @@ page {
             border-top: "1px solid #1f2937"
         }
 
-        p "RustScript Compiler v0.1.0 — Hackathon 2026" {
+        p "RustScript Compiler v0.1.1 — Hackathon 2026" {
             style { fg: "#4b5563" size: "0.85rem" mb: "4px" }
         }
         p "Zero dependencies. One file in, one file out." {

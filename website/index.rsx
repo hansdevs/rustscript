@@ -886,6 +886,109 @@ page {
     }
 
     # ════════════════════════════════════════════════════════
+    #  VERSION HISTORY
+    # ════════════════════════════════════════════════════════
+    div {
+        style {
+            pad: "80px 40px"
+            maxw: "800px"
+            mx: "auto"
+        }
+
+        h2 "Version History" {
+            style {
+                size: "1.8rem"
+                weight: "700"
+                fg: "#f9fafb"
+                mb: "40px"
+                align: "center"
+            }
+        }
+
+        # ── v0.1.1 ──
+        div {
+            style {
+                bg: "#111827"
+                border: "1px solid #1f2937"
+                radius: "12px"
+                pad: "28px 32px"
+                mb: "20px"
+            }
+
+            div {
+                style { display: "flex" justify-content: "space-between" align-items: "center" mb: "16px" }
+
+                span "v0.1.1" {
+                    style {
+                        fg: "#f97316"
+                        size: "1.15rem"
+                        weight: "700"
+                        font-family: "'JetBrains Mono', monospace"
+                    }
+                }
+                span "March 1, 2026" {
+                    style { fg: "#6b7280" size: "0.85rem" }
+                }
+            }
+
+            p "Local preview output — preview builds now write to .rustscript/ alongside source files instead of the OS temp directory." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" mb: "8px" }
+            }
+            p "Compiler cleanup — resolved all clippy warnings, ran cargo fmt, converted to inner doc comments." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" mb: "8px" }
+            }
+            p "Deduplicated internals — consolidated import resolver and browser-open logic into shared implementations." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" mb: "8px" }
+            }
+            p "Rust 2024 idioms — let-chains, div_ceil, dead code removal." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" }
+            }
+        }
+
+        # ── v0.1.0 ──
+        div {
+            style {
+                bg: "#111827"
+                border: "1px solid #1f2937"
+                radius: "12px"
+                pad: "28px 32px"
+            }
+
+            div {
+                style { display: "flex" justify-content: "space-between" align-items: "center" mb: "16px" }
+
+                span "v0.1.0" {
+                    style {
+                        fg: "#f97316"
+                        size: "1.15rem"
+                        weight: "700"
+                        font-family: "'JetBrains Mono', monospace"
+                    }
+                }
+                span "February 28, 2026  ·  Original HackUSU Edition" {
+                    style { fg: "#6b7280" size: "0.85rem" }
+                }
+            }
+
+            p "Initial release -- full compiler pipeline: lexer to parser to AST to codegen (HTML/CSS/JS)." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" mb: "8px" }
+            }
+            p "Tree-walking interpreter, dev server with live reload, VS Code extension." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" mb: "8px" }
+            }
+            p "One-line installer for macOS (ARM + Intel) and Linux." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" mb: "8px" }
+            }
+            p "Image imports with auto base64 inlining, 40+ CSS style shorthands." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" mb: "8px" }
+            }
+            p "Turing-complete language with functions, loops, lists, and string interpolation." {
+                style { fg: "#d1d5db" size: "0.9rem" lh: "1.6" }
+            }
+        }
+    }
+
+    # ════════════════════════════════════════════════════════
     #  FOOTER
     # ════════════════════════════════════════════════════════
     div {

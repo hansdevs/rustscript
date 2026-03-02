@@ -1,5 +1,5 @@
-/// Code generator: transforms a RustScript AST into a self-contained HTML file
-/// with embedded CSS and JavaScript.
+//! Code generator: transforms a RustScript AST into a self-contained HTML file
+//! with embedded CSS and JavaScript.
 
 use crate::ast::*;
 
@@ -12,65 +12,80 @@ fn map_style_prop(name: &str, value: &str) -> Vec<(String, String)> {
 
     match name {
         // ── Typography ──────────────────────────────────────
-        "size"       => vec![("font-size".into(), v)],
-        "font"       => vec![("font-family".into(), v)],
-        "weight"     => vec![("font-weight".into(), v)],
-        "bold"       => vec![("font-weight".into(), if flag { "bold".into() } else { v })],
-        "italic"     => vec![("font-style".into(), if flag { "italic".into() } else { v })],
-        "underline"  => vec![("text-decoration".into(), if flag { "underline".into() } else { v })],
-        "strike"     => vec![("text-decoration".into(), if flag { "line-through".into() } else { v })],
-        "uppercase"  => vec![("text-transform".into(), if flag { "uppercase".into() } else { v })],
-        "lowercase"  => vec![("text-transform".into(), if flag { "lowercase".into() } else { v })],
-        "capitalize" => vec![("text-transform".into(), if flag { "capitalize".into() } else { v })],
-        "spacing"    => vec![("letter-spacing".into(), v)],
-        "lh"         => vec![("line-height".into(), v)],
-        "align"      => vec![("text-align".into(), v)],
-        "indent"     => vec![("text-indent".into(), v)],
+        "size" => vec![("font-size".into(), v)],
+        "font" => vec![("font-family".into(), v)],
+        "weight" => vec![("font-weight".into(), v)],
+        "bold" => vec![("font-weight".into(), if flag { "bold".into() } else { v })],
+        "italic" => vec![("font-style".into(), if flag { "italic".into() } else { v })],
+        "underline" => vec![(
+            "text-decoration".into(),
+            if flag { "underline".into() } else { v },
+        )],
+        "strike" => vec![(
+            "text-decoration".into(),
+            if flag { "line-through".into() } else { v },
+        )],
+        "uppercase" => vec![(
+            "text-transform".into(),
+            if flag { "uppercase".into() } else { v },
+        )],
+        "lowercase" => vec![(
+            "text-transform".into(),
+            if flag { "lowercase".into() } else { v },
+        )],
+        "capitalize" => vec![(
+            "text-transform".into(),
+            if flag { "capitalize".into() } else { v },
+        )],
+        "spacing" => vec![("letter-spacing".into(), v)],
+        "lh" => vec![("line-height".into(), v)],
+        "align" => vec![("text-align".into(), v)],
+        "indent" => vec![("text-indent".into(), v)],
 
         // ── Colors & Background ─────────────────────────────
-        "bg"         => vec![("background".into(), v)],
-        "fg"         => vec![("color".into(), v)],
+        "bg" => vec![("background".into(), v)],
+        "fg" => vec![("color".into(), v)],
 
         // ── Spacing ─────────────────────────────────────────
-        "pad"        => vec![("padding".into(), v)],
-        "pt"         => vec![("padding-top".into(), v)],
-        "pb"         => vec![("padding-bottom".into(), v)],
-        "pl"         => vec![("padding-left".into(), v)],
-        "pr"         => vec![("padding-right".into(), v)],
-        "px"         => vec![
+        "pad" => vec![("padding".into(), v)],
+        "pt" => vec![("padding-top".into(), v)],
+        "pb" => vec![("padding-bottom".into(), v)],
+        "pl" => vec![("padding-left".into(), v)],
+        "pr" => vec![("padding-right".into(), v)],
+        "px" => vec![
             ("padding-left".into(), v.clone()),
             ("padding-right".into(), v),
         ],
-        "py"         => vec![
+        "py" => vec![
             ("padding-top".into(), v.clone()),
             ("padding-bottom".into(), v),
         ],
-        "m"          => vec![("margin".into(), v)],
-        "mt"         => vec![("margin-top".into(), v)],
-        "mb"         => vec![("margin-bottom".into(), v)],
-        "ml"         => vec![("margin-left".into(), v)],
-        "mr"         => vec![("margin-right".into(), v)],
-        "mx"         => vec![
+        "m" => vec![("margin".into(), v)],
+        "mt" => vec![("margin-top".into(), v)],
+        "mb" => vec![("margin-bottom".into(), v)],
+        "ml" => vec![("margin-left".into(), v)],
+        "mr" => vec![("margin-right".into(), v)],
+        "mx" => vec![
             ("margin-left".into(), v.clone()),
             ("margin-right".into(), v),
         ],
-        "my"         => vec![
+        "my" => vec![
             ("margin-top".into(), v.clone()),
             ("margin-bottom".into(), v),
         ],
 
         // ── Sizing ──────────────────────────────────────────
-        "w"          => vec![("width".into(), v)],
-        "h"          => vec![("height".into(), v)],
-        "minw"       => vec![("min-width".into(), v)],
-        "maxw"       => vec![("max-width".into(), v)],
-        "minh"       => vec![("min-height".into(), v)],
-        "maxh"       => vec![("max-height".into(), v)],
+        "w" => vec![("width".into(), v)],
+        "h" => vec![("height".into(), v)],
+        "minw" => vec![("min-width".into(), v)],
+        "maxw" => vec![("max-width".into(), v)],
+        "minh" => vec![("min-height".into(), v)],
+        "maxh" => vec![("max-height".into(), v)],
 
         // ── Border & Shape ──────────────────────────────────
-        "radius"     => vec![("border-radius".into(), v)],
-        "shadow"     => vec![("box-shadow".into(), v)],
-        "outline"    => vec![("outline".into(), v)],
+        "radius" => vec![("border-radius".into(), v)],
+        "shadow" => vec![("box-shadow".into(), v)],
+        "outline" => vec![("outline".into(), v)],
 
         // ── Layout (flag-style compound properties) ─────────
         "row" if flag => vec![
@@ -86,41 +101,41 @@ fn map_style_prop(name: &str, value: &str) -> Vec<(String, String)> {
             ("justify-content".into(), "center".into()),
             ("align-items".into(), "center".into()),
         ],
-        "hidden" if flag  => vec![("display".into(), "none".into())],
+        "hidden" if flag => vec![("display".into(), "none".into())],
         "pointer" if flag => vec![("cursor".into(), "pointer".into())],
-        "nowrap" if flag  => vec![("white-space".into(), "nowrap".into())],
-        "clip" if flag    => vec![("overflow".into(), "hidden".into())],
-        "scroll" if flag  => vec![("overflow".into(), "auto".into())],
-        "fixed" if flag   => vec![("position".into(), "fixed".into())],
+        "nowrap" if flag => vec![("white-space".into(), "nowrap".into())],
+        "clip" if flag => vec![("overflow".into(), "hidden".into())],
+        "scroll" if flag => vec![("overflow".into(), "auto".into())],
+        "fixed" if flag => vec![("position".into(), "fixed".into())],
         "absolute" if flag => vec![("position".into(), "absolute".into())],
         "relative" if flag => vec![("position".into(), "relative".into())],
-        "sticky" if flag  => vec![("position".into(), "sticky".into())],
-        "inline" if flag  => vec![("display".into(), "inline".into())],
-        "block" if flag   => vec![("display".into(), "block".into())],
-        "grid" if flag    => vec![("display".into(), "grid".into())],
+        "sticky" if flag => vec![("position".into(), "sticky".into())],
+        "inline" if flag => vec![("display".into(), "inline".into())],
+        "block" if flag => vec![("display".into(), "block".into())],
+        "grid" if flag => vec![("display".into(), "grid".into())],
 
         // ── Flex / Grid ─────────────────────────────────────
-        "items"      => vec![("align-items".into(), v)],
-        "justify"    => vec![("justify-content".into(), v)],
+        "items" => vec![("align-items".into(), v)],
+        "justify" => vec![("justify-content".into(), v)],
         "self-align" => vec![("align-self".into(), v)],
-        "grow"       => vec![("flex-grow".into(), v)],
-        "shrink"     => vec![("flex-shrink".into(), v)],
-        "basis"      => vec![("flex-basis".into(), v)],
-        "wrap"       => vec![("flex-wrap".into(), v)],
-        "gap"        => vec![("gap".into(), v)],
-        "cols"       => vec![("grid-template-columns".into(), v)],
-        "grows"      => vec![("grid-template-rows".into(), v)],
+        "grow" => vec![("flex-grow".into(), v)],
+        "shrink" => vec![("flex-shrink".into(), v)],
+        "basis" => vec![("flex-basis".into(), v)],
+        "wrap" => vec![("flex-wrap".into(), v)],
+        "gap" => vec![("gap".into(), v)],
+        "cols" => vec![("grid-template-columns".into(), v)],
+        "grows" => vec![("grid-template-rows".into(), v)],
 
         // ── Position ────────────────────────────────────────
-        "z"          => vec![("z-index".into(), v)],
-        "pos"        => vec![("position".into(), v)],
+        "z" => vec![("z-index".into(), v)],
+        "pos" => vec![("position".into(), v)],
 
         // ── Effects ─────────────────────────────────────────
-        "opacity"    => vec![("opacity".into(), v)],
+        "opacity" => vec![("opacity".into(), v)],
         "transition" => vec![("transition".into(), v)],
-        "transform"  => vec![("transform".into(), v)],
-        "filter"     => vec![("filter".into(), v)],
-        "backdrop"   => vec![("backdrop-filter".into(), v)],
+        "transform" => vec![("transform".into(), v)],
+        "filter" => vec![("filter".into(), v)],
+        "backdrop" => vec![("backdrop-filter".into(), v)],
 
         // ── Passthrough: standard CSS property names ────────
         _ => vec![(name.to_string(), v)],
@@ -173,9 +188,6 @@ impl Codegen {
     // ── statement codegen ────────────────────────────────────
 
     fn gen_stmt(&mut self, stmt: &Stmt, in_fn: bool) -> String {
-        let target = if in_fn { &mut String::new() } else { &mut String::new() };
-        let _ = target;
-
         match stmt {
             Stmt::Let { name, value } => {
                 let val_js = self.gen_expr(value);
@@ -392,7 +404,10 @@ impl Codegen {
                     }
                     "range" => {
                         if args_js.len() == 1 {
-                            format!("Array.from({{length: {}}}, function(_, i) {{ return i; }})", args_js[0])
+                            format!(
+                                "Array.from({{length: {}}}, function(_, i) {{ return i; }})",
+                                args_js[0]
+                            )
                         } else if args_js.len() >= 2 {
                             format!(
                                 "Array.from({{length: {} - {}}}, function(_, i) {{ return {} + i; }})",
@@ -439,7 +454,7 @@ impl Codegen {
         if !s.contains('{') {
             // Restore escaped braces: \u{E000} → {  \u{E001} → }
             let restored = s.replace('\u{E000}', "{").replace('\u{E001}', "}");
-            return format!("\"{}\""  , escape_js_string(&restored));
+            return format!("\"{}\"", escape_js_string(&restored));
         }
 
         let mut parts: Vec<String> = Vec::new();
@@ -574,16 +589,12 @@ impl Codegen {
                     // text element → just the text content, no wrapping tag
                     if let Some(txt) = text {
                         let t = self.gen_expr(txt);
-                        self.js_render
-                            .push_str(&format!("__h += __esc({});\n", t));
+                        self.js_render.push_str(&format!("__h += __esc({});\n", t));
                     }
                     return;
                 }
 
-                let open = format!(
-                    "__h += \"<{}{}{}{}",
-                    tag, style_str, attr_str, evt_str
-                );
+                let open = format!("__h += \"<{}{}{}{}", tag, style_str, attr_str, evt_str);
 
                 if self_closing {
                     self.js_render.push_str(&format!("{} />\";\n", open));
@@ -595,8 +606,7 @@ impl Codegen {
                 // Text content
                 if let Some(txt) = text {
                     let t = self.gen_expr(txt);
-                    self.js_render
-                        .push_str(&format!("__h += __esc({});\n", t));
+                    self.js_render.push_str(&format!("__h += __esc({});\n", t));
                 }
 
                 // Children
@@ -613,8 +623,7 @@ impl Codegen {
                 else_els,
             } => {
                 let cond_js = self.gen_expr(cond);
-                self.js_render
-                    .push_str(&format!("if ({}) {{\n", cond_js));
+                self.js_render.push_str(&format!("if ({}) {{\n", cond_js));
                 for el in then_els {
                     self.gen_element(el);
                 }
@@ -761,7 +770,7 @@ fn escape_js_string(s: &str) -> String {
         .replace('\n', "\\n")
         .replace('\r', "\\r")
         .replace('\t', "\\t")
-        .replace("</", "<\\/")  // prevent </script> from closing the tag
+        .replace("</", "<\\/") // prevent </script> from closing the tag
 }
 
 fn indent(s: &str, prefix: &str) -> String {

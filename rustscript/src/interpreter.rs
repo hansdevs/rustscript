@@ -1,5 +1,5 @@
-/// Tree-walking interpreter for RustScript.
-/// Used in `--run` mode to execute programs directly in the terminal.
+//! Tree-walking interpreter for RustScript.
+//! Used in `--run` mode to execute programs directly in the terminal.
 
 use std::collections::HashMap;
 use std::fmt;
@@ -62,7 +62,13 @@ impl Value {
             Value::Int(n) => *n as f64,
             Value::Float(n) => *n,
             Value::Str(s) => s.parse().unwrap_or(0.0),
-            Value::Bool(b) => if *b { 1.0 } else { 0.0 },
+            Value::Bool(b) => {
+                if *b {
+                    1.0
+                } else {
+                    0.0
+                }
+            }
             _ => 0.0,
         }
     }
@@ -125,11 +131,11 @@ impl Interpreter {
             Stmt::Assign { name, value } => {
                 let val = self.eval_expr(value, local)?;
                 // Check local first, then global
-                if let Some(scope) = local {
-                    if scope.contains_key(name) {
-                        scope.insert(name.clone(), val);
-                        return Ok(Signal::None);
-                    }
+                if let Some(scope) = local
+                    && scope.contains_key(name)
+                {
+                    scope.insert(name.clone(), val);
+                    return Ok(Signal::None);
                 }
                 self.globals.insert(name.clone(), val);
                 Ok(Signal::None)
@@ -239,7 +245,9 @@ impl Interpreter {
             }
             Stmt::Page { .. } => {
                 // In interpreter mode, skip page blocks (they're for HTML output)
-                println!("[info] Page block skipped in --run mode. Use build mode to generate HTML.");
+                println!(
+                    "[info] Page block skipped in --run mode. Use build mode to generate HTML."
+                );
                 Ok(Signal::None)
             }
             Stmt::Import { .. } => {
@@ -266,10 +274,10 @@ impl Interpreter {
             Expr::Str(s) => Ok(Value::Str(self.interpolate(s, local)?)),
             Expr::Bool(b) => Ok(Value::Bool(*b)),
             Expr::Ident(name) => {
-                if let Some(scope) = &*local {
-                    if let Some(v) = scope.get(name) {
-                        return Ok(v.clone());
-                    }
+                if let Some(scope) = &*local
+                    && let Some(v) = scope.get(name)
+                {
+                    return Ok(v.clone());
                 }
                 self.globals
                     .get(name)
@@ -320,10 +328,9 @@ impl Interpreter {
                 match (&obj, &idx) {
                     (Value::List(items), Value::Int(i)) => {
                         let i = *i as usize;
-                        items
-                            .get(i)
-                            .cloned()
-                            .ok_or_else(|| format!("Index {} out of bounds (len {})", i, items.len()))
+                        items.get(i).cloned().ok_or_else(|| {
+                            format!("Index {} out of bounds (len {})", i, items.len())
+                        })
                     }
                     (Value::Str(s), Value::Int(i)) => {
                         let i = *i as usize;
@@ -390,11 +397,7 @@ impl Interpreter {
                 left,
                 right,
                 |a, b| {
-                    if b == 0 {
-                        0
-                    } else {
-                        a % b
-                    }
+                    if b == 0 { 0 } else { a % b }
                 },
                 |a, b| a % b,
             ),
@@ -511,9 +514,7 @@ impl Interpreter {
             }
             "range" => {
                 return match args.as_slice() {
-                    [Value::Int(n)] => {
-                        Ok(Value::List((0..*n).map(Value::Int).collect()))
-                    }
+                    [Value::Int(n)] => Ok(Value::List((0..*n).map(Value::Int).collect())),
                     [Value::Int(start), Value::Int(end)] => {
                         Ok(Value::List((*start..*end).map(Value::Int).collect()))
                     }
@@ -584,12 +585,7 @@ impl Interpreter {
         Ok(Value::Null)
     }
 
-    fn call_method(
-        &self,
-        object: Value,
-        method: &str,
-        _args: Vec<Value>,
-    ) -> Result<Value, String> {
+    fn call_method(&self, object: Value, method: &str, args: Vec<Value>) -> Result<Value, String> {
         match (&object, method) {
             (Value::Str(s), "upper") => Ok(Value::Str(s.to_uppercase())),
             (Value::Str(s), "lower") => Ok(Value::Str(s.to_lowercase())),
@@ -597,14 +593,14 @@ impl Interpreter {
             (Value::Str(s), "length") => Ok(Value::Int(s.len() as i64)),
             (Value::List(l), "length") => Ok(Value::Int(l.len() as i64)),
             (Value::Str(s), "contains") => {
-                if let Some(Value::Str(sub)) = _args.first() {
+                if let Some(Value::Str(sub)) = args.first() {
                     Ok(Value::Bool(s.contains(sub.as_str())))
                 } else {
                     Err("contains() expects a string argument".into())
                 }
             }
             (Value::Str(s), "split") => {
-                if let Some(Value::Str(delim)) = _args.first() {
+                if let Some(Value::Str(delim)) = args.first() {
                     Ok(Value::List(
                         s.split(delim.as_str())
                             .map(|p| Value::Str(p.to_string()))
@@ -615,18 +611,14 @@ impl Interpreter {
                 }
             }
             (Value::List(l), "join") => {
-                if let Some(Value::Str(delim)) = _args.first() {
+                if let Some(Value::Str(delim)) = args.first() {
                     let parts: Vec<String> = l.iter().map(|v| format!("{}", v)).collect();
                     Ok(Value::Str(parts.join(delim)))
                 } else {
                     Err("join() expects a string argument".into())
                 }
             }
-            _ => Err(format!(
-                "No method '{}' on {}",
-                method,
-                object.type_name()
-            )),
+            _ => Err(format!("No method '{}' on {}", method, object.type_name())),
         }
     }
 
@@ -677,11 +669,11 @@ impl Interpreter {
 
                 // Simple: try to look up as identifier, or evaluate
                 let trimmed = expr_str.trim();
-                if let Some(scope) = &*local {
-                    if let Some(v) = scope.get(trimmed) {
-                        result.push_str(&format!("{}", v));
-                        continue;
-                    }
+                if let Some(scope) = &*local
+                    && let Some(v) = scope.get(trimmed)
+                {
+                    result.push_str(&format!("{}", v));
+                    continue;
                 }
                 if let Some(v) = self.globals.get(trimmed) {
                     result.push_str(&format!("{}", v));

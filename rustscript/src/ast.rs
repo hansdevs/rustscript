@@ -12,19 +12,11 @@ pub struct Program {
 #[derive(Debug, Clone)]
 pub enum Stmt {
     /// `import "path/to/file.rsx"`
-    Import {
-        path: String,
-    },
+    Import { path: String },
     /// `let name = expr`
-    Let {
-        name: String,
-        value: Expr,
-    },
+    Let { name: String, value: Expr },
     /// `name = expr`  or  `name += expr`  etc.
-    Assign {
-        name: String,
-        value: Expr,
-    },
+    Assign { name: String, value: Expr },
     /// Index assignment: `list[idx] = expr`
     IndexAssign {
         list: String,
@@ -46,10 +38,7 @@ pub enum Stmt {
         else_body: Option<Vec<Stmt>>,
     },
     /// `while cond { body }`
-    While {
-        cond: Expr,
-        body: Vec<Stmt>,
-    },
+    While { cond: Expr, body: Vec<Stmt> },
     /// `for var in iter { body }`
     For {
         var: String,
@@ -57,9 +46,7 @@ pub enum Stmt {
         body: Vec<Stmt>,
     },
     /// `page { elements }`
-    Page {
-        elements: Vec<Element>,
-    },
+    Page { elements: Vec<Element> },
     /// Expression used as a statement (e.g. function call)
     Expr(Expr),
 }
@@ -171,6 +158,6 @@ pub struct Attribute {
 
 #[derive(Debug, Clone)]
 pub struct Event {
-    pub name: String,  // e.g. "click", "input"
+    pub name: String, // e.g. "click", "input"
     pub body: Vec<Stmt>,
 }

@@ -1,18 +1,18 @@
-/// RustScript — a compiled language that turns .rsx into self-contained HTML.
-///
-/// Usage:
-///   rustscript preview <file.rsx>                      Build + open in browser
-///   rustscript build   <file.rsx>  [-o output.html]    Compile to HTML
-///   rustscript run     <file.rsx>                      Interpret in terminal
-///   rustscript help                                    Show help
+//! RustScript — a compiled language that turns .rsx into self-contained HTML.
+//!
+//! Usage:
+//!   rustscript preview <file.rsx>                      Build + open in browser
+//!   rustscript build   <file.rsx>  [-o output.html]    Compile to HTML
+//!   rustscript run     <file.rsx>                      Interpret in terminal
+//!   rustscript help                                    Show help
 
-mod token;
-mod lexer;
 mod ast;
-mod parser;
 mod codegen;
 mod interpreter;
+mod lexer;
+mod parser;
 mod server;
+mod token;
 
 use std::collections::HashSet;
 use std::env;
@@ -20,14 +20,14 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 
-use base64_engine::encode as base64_encode;
+pub(crate) use base64_engine::encode as base64_encode;
 
 /// Lightweight base64 encoder (no external crate needed).
 mod base64_engine {
     const CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     pub fn encode(data: &[u8]) -> String {
-        let mut out = String::with_capacity((data.len() + 2) / 3 * 4);
+        let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
         for chunk in data.chunks(3) {
             let b0 = chunk[0] as u32;
             let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
@@ -51,12 +51,15 @@ mod base64_engine {
 }
 
 /// File extensions recognized as images for auto-import.
-fn is_image_ext(ext: &str) -> bool {
-    matches!(ext, "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "ico" | "bmp")
+pub(crate) fn is_image_ext(ext: &str) -> bool {
+    matches!(
+        ext,
+        "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "ico" | "bmp"
+    )
 }
 
 /// Map file extension to MIME type.
-fn mime_for_ext(ext: &str) -> &'static str {
+pub(crate) fn mime_for_ext(ext: &str) -> &'static str {
     match ext {
         "png" => "image/png",
         "jpg" | "jpeg" => "image/jpeg",
@@ -71,12 +74,16 @@ fn mime_for_ext(ext: &str) -> &'static str {
 
 /// Derive a clean variable name from a filename (without extension).
 /// e.g. "my-logo.png" -> "my_logo", "rustscriptlogo.png" -> "rustscriptlogo"
-fn var_name_from_path(path: &Path) -> String {
-    let stem = path.file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("image");
+pub(crate) fn var_name_from_path(path: &Path) -> String {
+    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("image");
     stem.chars()
-        .map(|c| if c.is_alphanumeric() || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -120,29 +127,47 @@ fn cmd_preview(args: &[String]) {
     let input = &args[0];
     let html = compile_to_html(input);
 
-    // Write to a temp file
-    let mut tmp_dir = env::temp_dir();
-    let stem = PathBuf::from(input)
+    // Write to .rustscript/ directory next to the source file
+    let input_path = PathBuf::from(input);
+    let parent = input_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
+    let out_dir = parent.join(".rustscript");
+    if !out_dir.exists() {
+        if let Err(e) = fs::create_dir_all(&out_dir) {
+            eprintln!("Error creating '{}': {}", out_dir.display(), e);
+            process::exit(1);
+        }
+    }
+
+    // Write a .gitignore so the build artifacts don't get committed
+    let gitignore = out_dir.join(".gitignore");
+    if !gitignore.exists() {
+        let _ = fs::write(&gitignore, "*\n");
+    }
+
+    let stem = input_path
         .file_stem()
         .map(|s| s.to_string_lossy().to_string())
         .unwrap_or_else(|| "rustscript_preview".to_string());
-    tmp_dir.push(format!("{}.html", stem));
-    let out_path = tmp_dir.to_string_lossy().to_string();
+    let out_path = out_dir.join(format!("{}.html", stem));
+    let out_str = out_path.to_string_lossy().to_string();
 
     match fs::write(&out_path, &html) {
         Ok(_) => {
             println!("Built {} ({} bytes)", input, html.len());
+            println!("Preview at .rustscript/{}.html", stem);
             println!("Opening in browser...");
-            open_in_browser(&out_path);
+            open_in_browser(&out_str);
         }
         Err(e) => {
-            eprintln!("Error writing '{}': {}", out_path, e);
+            eprintln!("Error writing '{}': {}", out_str, e);
             process::exit(1);
         }
     }
 }
 
-fn open_in_browser(path: &str) {
+pub(crate) fn open_in_browser(path: &str) {
     #[cfg(target_os = "macos")]
     {
         let _ = process::Command::new("open").arg(path).spawn();
@@ -153,19 +178,25 @@ fn open_in_browser(path: &str) {
     }
     #[cfg(target_os = "windows")]
     {
-        let _ = process::Command::new("cmd").args(["/C", "start", "", path]).spawn();
+        let _ = process::Command::new("cmd")
+            .args(["/C", "start", "", path])
+            .spawn();
     }
 }
 
 fn compile_to_html(input: &str) -> String {
     let program = parse_file(input);
-    let base_dir = Path::new(input)
-        .parent()
-        .unwrap_or_else(|| Path::new("."));
+    let base_dir = Path::new(input).parent().unwrap_or_else(|| Path::new("."));
     let canonical = fs::canonicalize(input).unwrap_or_else(|_| PathBuf::from(input));
     let mut seen = HashSet::new();
     seen.insert(canonical);
-    let resolved = resolve_imports(program, base_dir, &mut seen);
+    let resolved = match server::resolve_imports(program, base_dir, &mut seen) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("{}", e);
+            process::exit(1);
+        }
+    };
 
     let mut cgen = codegen::Codegen::new();
     cgen.generate(&resolved)
@@ -213,7 +244,13 @@ fn cmd_run(args: &[String]) {
     let canonical = fs::canonicalize(input).unwrap_or_else(|_| PathBuf::from(input.as_str()));
     let mut seen = HashSet::new();
     seen.insert(canonical);
-    let resolved = resolve_imports(program, base_dir, &mut seen);
+    let resolved = match server::resolve_imports(program, base_dir, &mut seen) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("{}", e);
+            process::exit(1);
+        }
+    };
 
     let mut interp = interpreter::Interpreter::new();
     match interp.run(&resolved) {
@@ -279,76 +316,6 @@ fn parse_file(path: &str) -> ast::Program {
             process::exit(1);
         }
     }
-}
-
-/// Recursively resolve all `import "..."` statements by inlining the imported
-/// file's AST in place. Tracks already-seen files to prevent circular imports.
-fn resolve_imports(
-    program: ast::Program,
-    base_dir: &Path,
-    seen: &mut HashSet<PathBuf>,
-) -> ast::Program {
-    let mut resolved_stmts = Vec::new();
-
-    for stmt in program.stmts {
-        match stmt {
-            ast::Stmt::Import { path } => {
-                let import_path = base_dir.join(&path);
-                let canonical = match fs::canonicalize(&import_path) {
-                    Ok(p) => p,
-                    Err(e) => {
-                        eprintln!("Error resolving import '{}': {}", path, e);
-                        process::exit(1);
-                    }
-                };
-
-                if !seen.insert(canonical.clone()) {
-                    // Already imported this file, skip to avoid circular imports.
-                    continue;
-                }
-
-                // Check if this is an image import
-                let ext = canonical.extension()
-                    .and_then(|e| e.to_str())
-                    .unwrap_or("")
-                    .to_lowercase();
-
-                if is_image_ext(&ext) {
-                    // Read binary, base64 encode, emit a let binding
-                    let bytes = match fs::read(&canonical) {
-                        Ok(b) => b,
-                        Err(e) => {
-                            eprintln!("Error reading image '{}': {}", path, e);
-                            process::exit(1);
-                        }
-                    };
-                    let mime = mime_for_ext(&ext);
-                    let data_uri = format!("data:{};base64,{}", mime, base64_encode(&bytes));
-                    let var = var_name_from_path(&canonical);
-                    resolved_stmts.push(ast::Stmt::Let {
-                        name: var,
-                        value: ast::Expr::Str(data_uri),
-                    });
-                    continue;
-                }
-
-                let import_str = import_path.to_string_lossy().to_string();
-                let imported = parse_file(&import_str);
-
-                let child_dir = canonical
-                    .parent()
-                    .unwrap_or_else(|| Path::new("."));
-                let child_resolved = resolve_imports(imported, child_dir, seen);
-
-                resolved_stmts.extend(child_resolved.stmts);
-            }
-            other => {
-                resolved_stmts.push(other);
-            }
-        }
-    }
-
-    ast::Program { stmts: resolved_stmts }
 }
 
 fn print_usage() {
