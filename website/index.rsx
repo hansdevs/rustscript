@@ -179,6 +179,22 @@ page {
                     }
                     href: "https://github.com/hansdevs/rustscript"
                 }
+
+                a "VS Code Extension" {
+                    style {
+                        bg: "transparent"
+                        fg: "#e5e7eb"
+                        pad: "12px 28px"
+                        radius: "8px"
+                        size: "0.95rem"
+                        weight: "500"
+                        border: "1px solid #374151"
+                        text-decoration: "none"
+                        pointer
+                        transition: "border-color 0.15s"
+                    }
+                    href: "https://marketplace.visualstudio.com/items?itemName=Hansg123.rustscript"
+                }
             }
 
             # Stats row
@@ -809,6 +825,7 @@ page {
     #  INSTALL
     # ════════════════════════════════════════════════════════
     div {
+        id: "install"
         style {
             pad: "80px 40px"
             bg: "#0a0e17"
@@ -881,6 +898,25 @@ page {
                         white-space: "pre"
                     }
                 }
+            }
+
+            p "VS Code extension:" {
+                style { fg: "#6b7280" mt: "24px" mb: "12px" size: "0.9rem" }
+            }
+
+            a "Install RustScript for VS Code" {
+                style {
+                    display: "inline-block"
+                    bg: "#111827"
+                    fg: "#f97316"
+                    border: "1px solid #1f2937"
+                    pad: "12px 28px"
+                    radius: "8px"
+                    text-decoration: "none"
+                    size: "0.9rem"
+                    weight: "600"
+                }
+                href: "https://marketplace.visualstudio.com/items?itemName=Hansg123.rustscript"
             }
         }
     }

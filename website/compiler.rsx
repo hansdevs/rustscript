@@ -737,7 +737,7 @@ page {
         p "Zero dependencies. One file in, one file out." {
             style { fg: "#374151" size: "0.75rem" mb: "12px" }
         }
-        p "© 2026 Hans Gamlien. All rights reserved." {
+        p "(c) 2026 Hans Gamlien. All rights reserved." {
             style { fg: "#374151" size: "0.7rem" }
         }
     }
