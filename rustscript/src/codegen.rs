@@ -124,7 +124,7 @@ fn map_style_prop(name: &str, value: &str) -> Vec<(String, String)> {
         "wrap" => vec![("flex-wrap".into(), v)],
         "gap" => vec![("gap".into(), v)],
         "cols" => vec![("grid-template-columns".into(), v)],
-        "grows" => vec![("grid-template-rows".into(), v)],
+        "rows" => vec![("grid-template-rows".into(), v)],
 
         // ── Position ────────────────────────────────────────
         "z" => vec![("z-index".into(), v)],
@@ -304,6 +304,24 @@ impl Codegen {
                 // Imports are resolved before codegen; should not reach here.
                 String::new()
             }
+            Stmt::Break => {
+                let s = "break;\n".to_string();
+                if in_fn { s } else { self.js_top.push_str(&s); String::new() }
+            }
+            Stmt::Continue => {
+                let s = "continue;\n".to_string();
+                if in_fn { s } else { self.js_top.push_str(&s); String::new() }
+            }
+            Stmt::MemberAssign { object, field, value } => {
+                let val_js = self.gen_expr(value);
+                let line = format!("{}.{} = {};\n", object, field, val_js);
+                if in_fn {
+                    line
+                } else {
+                    self.js_top.push_str(&line);
+                    String::new()
+                }
+            }
         }
     }
 
@@ -323,10 +341,31 @@ impl Codegen {
             Expr::Float(n) => format!("{}", n),
             Expr::Str(s) => self.gen_interpolated_string(s),
             Expr::Bool(b) => b.to_string(),
+            Expr::None => "null".to_string(),
             Expr::Ident(name) => name.clone(),
             Expr::List(items) => {
                 let inner: Vec<String> = items.iter().map(|e| self.gen_expr(e)).collect();
                 format!("[{}]", inner.join(", "))
+            }
+            Expr::Dict(pairs) => {
+                let inner: Vec<String> = pairs
+                    .iter()
+                    .map(|(k, v)| format!("{}: {}", self.gen_expr(k), self.gen_expr(v)))
+                    .collect();
+                format!("{{{}}}", inner.join(", "))
+            }
+            Expr::Lambda { params, body } => {
+                let params_js = params.join(", ");
+                let body_js = self.gen_expr(body);
+                format!("(function({}) {{ return {}; }})", params_js, body_js)
+            }
+            Expr::PipeCall { value, func, extra_args } => {
+                let val_js = self.gen_expr(value);
+                let mut all_args = vec![val_js];
+                for a in extra_args {
+                    all_args.push(self.gen_expr(a));
+                }
+                format!("{}({})", func, all_args.join(", "))
             }
             Expr::BinOp { left, op, right } => {
                 let l = self.gen_expr(left);
@@ -337,6 +376,8 @@ impl Codegen {
                     BinOp::Mul => "*",
                     BinOp::Div => "/",
                     BinOp::Mod => "%",
+                    BinOp::Pow => "**",
+                    BinOp::FloorDiv => return format!("Math.floor(({}) / ({}))", l, r),
                     BinOp::Eq => "===",
                     BinOp::NotEq => "!==",
                     BinOp::Lt => "<",
@@ -408,10 +449,15 @@ impl Codegen {
                                 "Array.from({{length: {}}}, function(_, i) {{ return i; }})",
                                 args_js[0]
                             )
-                        } else if args_js.len() >= 2 {
+                        } else if args_js.len() == 2 {
                             format!(
                                 "Array.from({{length: {} - {}}}, function(_, i) {{ return {} + i; }})",
                                 args_js[1], args_js[0], args_js[0]
+                            )
+                        } else if args_js.len() >= 3 {
+                            format!(
+                                "(function(){{ var r=[]; for(var i={};({s}>0?i<{e}:i>{e});i+={s})r.push(i); return r; }})()",
+                                args_js[0], s = args_js[2], e = args_js[1]
                             )
                         } else {
                             "[]".to_string()
@@ -422,6 +468,157 @@ impl Codegen {
                             format!("typeof {}", a)
                         } else {
                             "\"undefined\"".to_string()
+                        }
+                    }
+                    "abs" => {
+                        if let Some(a) = args_js.first() {
+                            format!("Math.abs({})", a)
+                        } else {
+                            "0".to_string()
+                        }
+                    }
+                    "min" => format!("Math.min({})", args_js.join(", ")),
+                    "max" => format!("Math.max({})", args_js.join(", ")),
+                    "round" => {
+                        if args_js.len() >= 2 {
+                            format!(
+                                "(Math.round({} * Math.pow(10, {})) / Math.pow(10, {}))",
+                                args_js[0], args_js[1], args_js[1]
+                            )
+                        } else if let Some(a) = args_js.first() {
+                            format!("Math.round({})", a)
+                        } else {
+                            "0".to_string()
+                        }
+                    }
+                    "sum" => {
+                        if let Some(a) = args_js.first() {
+                            format!("{}.reduce(function(a,b){{ return a+b; }}, 0)", a)
+                        } else {
+                            "0".to_string()
+                        }
+                    }
+                    "sorted" => {
+                        if let Some(a) = args_js.first() {
+                            format!("{}.slice().sort(function(a,b){{ return a-b; }})", a)
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "reversed" => {
+                        if let Some(a) = args_js.first() {
+                            format!("{}.slice().reverse()", a)
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "enumerate" => {
+                        if let Some(a) = args_js.first() {
+                            format!("{}.map(function(v,i){{ return [i,v]; }})", a)
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "zip" => {
+                        if args_js.len() >= 2 {
+                            format!(
+                                "{}.map(function(v,i){{ return [v, {}[i]]; }})",
+                                args_js[0], args_js[1]
+                            )
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "any" => {
+                        if let Some(a) = args_js.first() {
+                            format!("{}.some(function(v){{ return !!v; }})", a)
+                        } else {
+                            "false".to_string()
+                        }
+                    }
+                    "all" => {
+                        if let Some(a) = args_js.first() {
+                            format!("{}.every(function(v){{ return !!v; }})", a)
+                        } else {
+                            "true".to_string()
+                        }
+                    }
+                    "keys" => {
+                        if let Some(a) = args_js.first() {
+                            format!("Object.keys({})", a)
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "values" => {
+                        if let Some(a) = args_js.first() {
+                            format!("Object.values({})", a)
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "items" => {
+                        if let Some(a) = args_js.first() {
+                            format!("Object.entries({})", a)
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "has" => {
+                        if args_js.len() >= 2 {
+                            format!("(({}).hasOwnProperty ? ({}).hasOwnProperty({}) : ({}).includes({}))", args_js[0], args_js[0], args_js[1], args_js[0], args_js[1])
+                        } else {
+                            "false".to_string()
+                        }
+                    }
+                    "chr" => {
+                        if let Some(a) = args_js.first() {
+                            format!("String.fromCharCode({})", a)
+                        } else {
+                            "\"\"".to_string()
+                        }
+                    }
+                    "ord" => {
+                        if let Some(a) = args_js.first() {
+                            format!("({}).charCodeAt(0)", a)
+                        } else {
+                            "0".to_string()
+                        }
+                    }
+                    "bool" => {
+                        if let Some(a) = args_js.first() {
+                            format!("Boolean({})", a)
+                        } else {
+                            "false".to_string()
+                        }
+                    }
+                    "map" => {
+                        if args_js.len() >= 2 {
+                            format!("{}.map({})", args_js[0], args_js[1])
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "filter" => {
+                        if args_js.len() >= 2 {
+                            format!("{}.filter({})", args_js[0], args_js[1])
+                        } else {
+                            "[]".to_string()
+                        }
+                    }
+                    "reduce" => {
+                        if args_js.len() >= 3 {
+                            format!("{}.reduce({}, {})", args_js[0], args_js[2], args_js[1])
+                        } else {
+                            "undefined".to_string()
+                        }
+                    }
+                    "assert" => {
+                        if let Some(a) = args_js.first() {
+                            let msg = args_js.get(1).map(|m| m.as_str()).unwrap_or("\"Assertion failed\"");
+                            format!("if (!{}) throw new Error({})", a, msg)
+                        } else {
+                            String::new()
                         }
                     }
                     _ => format!("{}({})", name, args_js.join(", ")),

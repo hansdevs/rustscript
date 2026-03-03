@@ -15,6 +15,7 @@ pub enum Token {
     Fn,
     Return,
     If,
+    Elif,
     Else,
     While,
     For,
@@ -25,9 +26,12 @@ pub enum Token {
     On,
     True,
     False,
+    None,
     And,
     Or,
     Not,
+    Break,
+    Continue,
 
     // ── Operators ────────────────────────────────────────────
     Plus,
@@ -35,6 +39,8 @@ pub enum Token {
     Star,
     Slash,
     Percent,
+    StarStar,    // **  (power)
+    SlashSlash,  // //  (floor division)
     Assign,      // =
     Eq,          // ==
     NotEq,       // !=
@@ -44,6 +50,9 @@ pub enum Token {
     GtEq,        // >=
     PlusAssign,  // +=
     MinusAssign, // -=
+    StarAssign,  // *=
+    SlashAssign, // /=
+    Pipe,        // |>  (pipe operator)
 
     // ── Delimiters ───────────────────────────────────────────
     LParen,   // (
@@ -55,20 +64,10 @@ pub enum Token {
     Comma,    // ,
     Colon,    // :
     Dot,      // .
+    Arrow,    // ->
 
     // ── Special ──────────────────────────────────────────────
     Eof,
-}
-
-impl Token {
-    /// Returns true if this token is a known HTML tag identifier.
-    #[allow(dead_code)]
-    pub fn is_html_tag(&self) -> bool {
-        match self {
-            Token::Ident(name) => is_html_tag(name),
-            _ => false,
-        }
-    }
 }
 
 /// Check whether a name is a known HTML element tag.

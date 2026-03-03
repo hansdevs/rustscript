@@ -46,6 +46,13 @@ pub(crate) fn resolve_imports(
 
     for stmt in program.stmts {
         match stmt {
+            ast::Stmt::Import { ref path }
+                if !path.contains('.') && !path.contains('/') && !path.contains('\\') =>
+            {
+                // Module import (e.g. `import turbo`) — pass through to interpreter
+                resolved_stmts.push(stmt);
+                continue;
+            }
             ast::Stmt::Import { path } => {
                 let import_path = base_dir.join(&path);
                 let canonical = fs::canonicalize(&import_path)

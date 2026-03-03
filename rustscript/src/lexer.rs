@@ -63,6 +63,29 @@ impl Lexer {
                 }
                 continue; // re-check for more whitespace / comments
             }
+            // skip block comments  /* ... */
+            if self.peek() == Some('/') && self.peek_next() == Some('*') {
+                self.advance(); // /
+                self.advance(); // *
+                let mut depth = 1;
+                while depth > 0 {
+                    match self.peek() {
+                        Some('/') if self.peek_next() == Some('*') => {
+                            self.advance();
+                            self.advance();
+                            depth += 1;
+                        }
+                        Some('*') if self.peek_next() == Some('/') => {
+                            self.advance();
+                            self.advance();
+                            depth -= 1;
+                        }
+                        Some(_) => { self.advance(); }
+                        None => break,
+                    }
+                }
+                continue;
+            }
             break;
         }
     }
@@ -99,7 +122,7 @@ impl Lexer {
                 // ── identifier / keyword ──
                 'a'..='z' | 'A'..='Z' | '_' => self.read_ident(),
 
-                // ── two-char operators ──
+                // ── two-char / three-char operators ──
                 '=' if self.peek_next() == Some('=') => {
                     self.advance();
                     self.advance();
@@ -130,6 +153,36 @@ impl Lexer {
                     self.advance();
                     Token::MinusAssign
                 }
+                '-' if self.peek_next() == Some('>') => {
+                    self.advance();
+                    self.advance();
+                    Token::Arrow
+                }
+                '*' if self.peek_next() == Some('*') => {
+                    self.advance();
+                    self.advance();
+                    Token::StarStar
+                }
+                '*' if self.peek_next() == Some('=') => {
+                    self.advance();
+                    self.advance();
+                    Token::StarAssign
+                }
+                '/' if self.peek_next() == Some('/') => {
+                    self.advance();
+                    self.advance();
+                    Token::SlashSlash
+                }
+                '/' if self.peek_next() == Some('=') => {
+                    self.advance();
+                    self.advance();
+                    Token::SlashAssign
+                }
+                '|' if self.peek_next() == Some('>') => {
+                    self.advance();
+                    self.advance();
+                    Token::Pipe
+                }
 
                 // ── single-char tokens ──
                 '+' => {
@@ -151,6 +204,11 @@ impl Lexer {
                 '%' => {
                     self.advance();
                     Token::Percent
+                }
+                '|' => {
+                    self.advance();
+                    // standalone | for lambda params: |x, y| expr
+                    Token::Ident("|".to_string())
                 }
                 '=' => {
                     self.advance();
@@ -338,6 +396,7 @@ impl Lexer {
             "fn" => Token::Fn,
             "return" => Token::Return,
             "if" => Token::If,
+            "elif" => Token::Elif,
             "else" => Token::Else,
             "while" => Token::While,
             "for" => Token::For,
@@ -348,9 +407,12 @@ impl Lexer {
             "on" => Token::On,
             "true" => Token::True,
             "false" => Token::False,
+            "none" => Token::None,
             "and" => Token::And,
             "or" => Token::Or,
             "not" => Token::Not,
+            "break" => Token::Break,
+            "continue" => Token::Continue,
             _ => Token::Ident(buf),
         }
     }

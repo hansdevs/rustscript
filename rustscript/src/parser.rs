@@ -96,6 +96,14 @@ impl Parser {
             Token::While => self.parse_while(),
             Token::For => self.parse_for(),
             Token::Page => self.parse_page(),
+            Token::Break => {
+                self.advance();
+                Ok(Stmt::Break)
+            }
+            Token::Continue => {
+                self.advance();
+                Ok(Stmt::Continue)
+            }
             _ => self.parse_assign_or_expr(),
         }
     }
@@ -108,8 +116,13 @@ impl Parser {
                 self.advance();
                 Ok(Stmt::Import { path })
             }
+            Token::Ident(name) => {
+                // Module import: `import turbo`
+                self.advance();
+                Ok(Stmt::Import { path: name })
+            }
             other => Err(format!(
-                "[{}:{}] Expected string path after 'import', got {:?}",
+                "[{}:{}] Expected string path or module name after 'import', got {:?}",
                 line, col, other
             )),
         }
@@ -157,9 +170,12 @@ impl Parser {
                 | Token::Fn
                 | Token::Return
                 | Token::If
+                | Token::Elif
                 | Token::While
                 | Token::For
                 | Token::Page
+                | Token::Break
+                | Token::Continue
         ) {
             return Ok(Stmt::Return(None));
         }
@@ -171,7 +187,11 @@ impl Parser {
         self.advance(); // consume 'if'
         let cond = self.parse_expr()?;
         let then_body = self.parse_block()?;
-        let else_body = if *self.peek() == Token::Else {
+        let else_body = if *self.peek() == Token::Elif {
+            // elif → desugar to else { if ... }
+            let elif = self.parse_if_stmt_from_elif()?;
+            Some(vec![elif])
+        } else if *self.peek() == Token::Else {
             self.advance();
             if *self.peek() == Token::If {
                 // else if  →  else { if ... }
@@ -180,6 +200,27 @@ impl Parser {
             } else {
                 Some(self.parse_block()?)
             }
+        } else {
+            None
+        };
+        Ok(Stmt::If {
+            cond,
+            then_body,
+            else_body,
+        })
+    }
+
+    /// Parse elif as if it were an `if` (used for elif chains)
+    fn parse_if_stmt_from_elif(&mut self) -> Result<Stmt, String> {
+        self.advance(); // consume 'elif'
+        let cond = self.parse_expr()?;
+        let then_body = self.parse_block()?;
+        let else_body = if *self.peek() == Token::Elif {
+            let elif = self.parse_if_stmt_from_elif()?;
+            Some(vec![elif])
+        } else if *self.peek() == Token::Else {
+            self.advance();
+            Some(self.parse_block()?)
         } else {
             None
         };
@@ -237,6 +278,17 @@ impl Parser {
                             Err("Can only assign to identifier index".into())
                         }
                     }
+                    Expr::Member { object, field } => {
+                        if let Expr::Ident(name) = *object {
+                            Ok(Stmt::MemberAssign {
+                                object: name,
+                                field,
+                                value,
+                            })
+                        } else {
+                            Err("Can only assign to identifier member".into())
+                        }
+                    }
                     _ => Err("Invalid assignment target".into()),
                 }
             }
@@ -272,6 +324,38 @@ impl Parser {
                     Err("Invalid -= target".into())
                 }
             }
+            Token::StarAssign => {
+                self.advance();
+                let rhs = self.parse_expr()?;
+                if let Expr::Ident(name) = expr {
+                    Ok(Stmt::Assign {
+                        value: Expr::BinOp {
+                            left: Box::new(Expr::Ident(name.clone())),
+                            op: BinOp::Mul,
+                            right: Box::new(rhs),
+                        },
+                        name,
+                    })
+                } else {
+                    Err("Invalid *= target".into())
+                }
+            }
+            Token::SlashAssign => {
+                self.advance();
+                let rhs = self.parse_expr()?;
+                if let Expr::Ident(name) = expr {
+                    Ok(Stmt::Assign {
+                        value: Expr::BinOp {
+                            left: Box::new(Expr::Ident(name.clone())),
+                            op: BinOp::Div,
+                            right: Box::new(rhs),
+                        },
+                        name,
+                    })
+                } else {
+                    Err("Invalid /= target".into())
+                }
+            }
             _ => Ok(Stmt::Expr(expr)),
         }
     }
@@ -279,7 +363,31 @@ impl Parser {
     // ── expressions (precedence climbing) ────────────────────
 
     fn parse_expr(&mut self) -> Result<Expr, String> {
-        self.parse_or()
+        let expr = self.parse_pipe()?;
+        Ok(expr)
+    }
+
+    /// Pipe operator: `expr |> func` or `expr |> func(extra_args)`
+    fn parse_pipe(&mut self) -> Result<Expr, String> {
+        let mut left = self.parse_or()?;
+        while *self.peek() == Token::Pipe {
+            self.advance(); // consume |>
+            let func_name = self.expect_ident()?;
+            let extra_args = if *self.peek() == Token::LParen {
+                self.advance(); // (
+                let args = self.parse_arg_list()?;
+                self.expect(&Token::RParen)?;
+                args
+            } else {
+                Vec::new()
+            };
+            left = Expr::PipeCall {
+                value: Box::new(left),
+                func: func_name,
+                extra_args,
+            };
+        }
+        Ok(left)
     }
 
     fn parse_or(&mut self) -> Result<Expr, String> {
@@ -370,16 +478,17 @@ impl Parser {
     }
 
     fn parse_multiplication(&mut self) -> Result<Expr, String> {
-        let mut left = self.parse_unary()?;
+        let mut left = self.parse_power()?;
         loop {
             let op = match self.peek() {
                 Token::Star => BinOp::Mul,
                 Token::Slash => BinOp::Div,
                 Token::Percent => BinOp::Mod,
+                Token::SlashSlash => BinOp::FloorDiv,
                 _ => break,
             };
             self.advance();
-            let right = self.parse_unary()?;
+            let right = self.parse_power()?;
             left = Expr::BinOp {
                 left: Box::new(left),
                 op,
@@ -387,6 +496,22 @@ impl Parser {
             };
         }
         Ok(left)
+    }
+
+    /// Power operator: right-associative `**`
+    fn parse_power(&mut self) -> Result<Expr, String> {
+        let base = self.parse_unary()?;
+        if *self.peek() == Token::StarStar {
+            self.advance();
+            let exp = self.parse_power()?; // right-associative
+            Ok(Expr::BinOp {
+                left: Box::new(base),
+                op: BinOp::Pow,
+                right: Box::new(exp),
+            })
+        } else {
+            Ok(base)
+        }
     }
 
     fn parse_unary(&mut self) -> Result<Expr, String> {
@@ -485,6 +610,24 @@ impl Parser {
                 self.advance();
                 Ok(Expr::Bool(false))
             }
+            Token::None => {
+                self.advance();
+                Ok(Expr::None)
+            }
+            Token::Ident(ref name) if name == "|" => {
+                // Lambda: |params| expr  or  |params| -> expr
+                self.advance(); // consume the | token
+                let params = self.parse_lambda_params()?;
+                // allow optional ->
+                if *self.peek() == Token::Arrow {
+                    self.advance();
+                }
+                let body = self.parse_expr()?;
+                Ok(Expr::Lambda {
+                    params,
+                    body: Box::new(body),
+                })
+            }
             Token::Ident(name) => {
                 self.advance();
                 Ok(Expr::Ident(name))
@@ -501,11 +644,65 @@ impl Parser {
                 self.expect(&Token::RBracket)?;
                 Ok(Expr::List(items))
             }
+            Token::LBrace => {
+                // Dict literal: {key: val, key2: val2}
+                self.parse_dict_literal()
+            }
             other => Err(format!(
                 "[{}:{}] Unexpected token in expression: {:?}",
                 line, col, other
             )),
         }
+    }
+
+    /// Parse lambda params between the two | delimiters.
+    fn parse_lambda_params(&mut self) -> Result<Vec<String>, String> {
+        let mut params = Vec::new();
+        // Check for empty params: ||
+        if let Token::Ident(ref name) = self.peek().clone()
+            && name == "|" {
+                self.advance(); // consume closing |
+                return Ok(params);
+            }
+        // Parse param names until we see |
+        params.push(self.expect_ident()?);
+        while *self.peek() == Token::Comma {
+            self.advance();
+            params.push(self.expect_ident()?);
+        }
+        // Expect closing |
+        if let Token::Ident(ref name) = self.peek().clone()
+            && name == "|" {
+                self.advance();
+                return Ok(params);
+            }
+        Err("Expected '|' to close lambda parameters".into())
+    }
+
+    /// Parse dict literal: { key: val, key2: val2 }
+    fn parse_dict_literal(&mut self) -> Result<Expr, String> {
+        self.advance(); // consume {
+        let mut pairs = Vec::new();
+        if *self.peek() == Token::RBrace {
+            self.advance();
+            return Ok(Expr::Dict(pairs));
+        }
+        loop {
+            let key = self.parse_expr()?;
+            self.expect(&Token::Colon)?;
+            let value = self.parse_expr()?;
+            pairs.push((key, value));
+            if *self.peek() == Token::Comma {
+                self.advance();
+                if *self.peek() == Token::RBrace {
+                    break; // trailing comma
+                }
+            } else {
+                break;
+            }
+        }
+        self.expect(&Token::RBrace)?;
+        Ok(Expr::Dict(pairs))
     }
 
     fn parse_arg_list(&mut self) -> Result<Vec<Expr>, String> {
@@ -677,6 +874,7 @@ impl Parser {
         let (line, col) = self.loc();
         let name = match self.peek().clone() {
             Token::Ident(s) => s,
+            Token::Elif => "elif".to_string(),
             Token::Style => "style".to_string(),
             Token::On => "on".to_string(),
             Token::If => "if".to_string(),
@@ -691,6 +889,9 @@ impl Parser {
             Token::Page => "page".to_string(),
             Token::True => "true".to_string(),
             Token::False => "false".to_string(),
+            Token::None => "none".to_string(),
+            Token::Break => "break".to_string(),
+            Token::Continue => "continue".to_string(),
             Token::And => "and".to_string(),
             Token::Or => "or".to_string(),
             Token::Not => "not".to_string(),

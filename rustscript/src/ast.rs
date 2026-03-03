@@ -23,6 +23,12 @@ pub enum Stmt {
         index: Expr,
         value: Expr,
     },
+    /// Member assignment: `obj.field = expr`
+    MemberAssign {
+        object: String,
+        field: String,
+        value: Expr,
+    },
     /// `fn name(params) { body }`
     FnDecl {
         name: String,
@@ -45,6 +51,10 @@ pub enum Stmt {
         iter: Expr,
         body: Vec<Stmt>,
     },
+    /// `break`
+    Break,
+    /// `continue`
+    Continue,
     /// `page { elements }`
     Page { elements: Vec<Element> },
     /// Expression used as a statement (e.g. function call)
@@ -59,8 +69,11 @@ pub enum Expr {
     Float(f64),
     Str(String),
     Bool(bool),
+    None,
     Ident(String),
     List(Vec<Expr>),
+    /// Dictionary literal: `{key: val, key2: val2}`
+    Dict(Vec<(Expr, Expr)>),
 
     BinOp {
         left: Box<Expr>,
@@ -92,6 +105,17 @@ pub enum Expr {
         object: Box<Expr>,
         field: String,
     },
+    /// Lambda: `|params| expr`
+    Lambda {
+        params: Vec<String>,
+        body: Box<Expr>,
+    },
+    /// Pipe: `expr |> fn`
+    PipeCall {
+        value: Box<Expr>,
+        func: String,
+        extra_args: Vec<Expr>,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -101,6 +125,8 @@ pub enum BinOp {
     Mul,
     Div,
     Mod,
+    Pow,
+    FloorDiv,
     Eq,
     NotEq,
     Lt,
